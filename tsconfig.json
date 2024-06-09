@@ -1,0 +1,23 @@
+{
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "exclude": ["./node_modules/", "./dist/"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"],
+      "@data/*": ["src/data/*"],
+      "@dtos/*": ["src/dtos/*"],
+      "@configs/*": ["src/configs/*"],
+      "@middlewares/*": ["src/middlewares/*"],
+      "@models/*": ["src/models/*"],
+      "@routes/*": ["src/routes/*"],
+      "@controllers/*": ["src/controllers/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"]
+  }
+}
