@@ -1,9 +1,11 @@
 import "@configs/env";
-import User from "@models/userModel.ts";
-import { toObjectHexString } from "@src/configs/toObjectHexString";
+
 import { NextFunction, Request, Response } from "express";
+
+import User from "@models/userModel";
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
+import { toObjectHexString } from "@src/configs/toObjectHexString";
 
 const protect = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
