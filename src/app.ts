@@ -1,16 +1,18 @@
-import connectDB from "@configs/db";
 import { errorHandler, notFound } from "@middlewares/errorMiddleware";
-import routes from "@routes/index";
+
+import IUserDocument from "./dtos/userDto";
+import { Server } from "socket.io";
 import colors from "colors";
+import connectDB from "@configs/db";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
 import http from "http";
 import path from "path";
-import { Server } from "socket.io";
-import IUserDocument from "./dtos/userDto";
+import routes from "@routes/index";
 import { useSession } from "./redis/connect-redis";
+
 dotenv.config();
 connectDB();
 const app = express();
@@ -21,6 +23,7 @@ const allowedOrigins = [
 ];
 
 const io = new Server(server, {
+  path: '/chat/socket.io',
   cors:{
   origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], 
