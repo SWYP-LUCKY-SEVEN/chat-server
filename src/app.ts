@@ -23,6 +23,7 @@ const allowedOrigins = [
 ];
 
 const io = new Server(server, {
+  path: '/chat/socket.io',
   cors:{
   origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], 
