@@ -88,12 +88,13 @@ const updateGroupChat = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+// 사용자 채팅에 추가
 const addToGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId, type } = req.body;
 
     const objectChatId = toObjectHexString(studyId) as string;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.user?._id; // JWT 정보 확인
     let objectUserId
     let reqObjectUserId 
     if (type == "join") {
@@ -112,6 +113,7 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+// 사용자 채팅에서 제거
 const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId } = req.body;
@@ -129,6 +131,7 @@ const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+//채팅 제거
 const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
@@ -173,6 +176,48 @@ const removeJoinToGroup = asyncHandler(async (req: Request, res: Response) => {
     res.status(error.statusCode).json(error.message);
   }
 });
+
+
+// 사용자 채팅 로직 임의 추가
+
+// 사용자 채팅에서 제거 (강퇴, 탈퇴 처리)
+const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { studyId, type, transfer } = req.body;
+    const objectChatId = toObjectHexString(studyId) as string;
+    const objectUserId = toObjectHexString(userId) as string;
+    if (objectChatId && objectUserId) {
+      const updatedGroupChat = await chatService.leaveFromChat(
+        objectChatId, 
+        objectUserId, 
+        transfer?toObjectHexString(transfer):null
+      );
+      res.status(200).json(updatedGroupChat);
+    }
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+// 채팅방 이름 업데이트
+const updateChatName = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { chatId, chatName } = req.body;
+    const reqUseId = req.user?._id;
+    const objectChatId = toObjectHexString(chatId) as string;
+    const updatedGroupChat = await chatService.updateChatName(
+      objectChatId,
+      chatName,
+      reqUseId
+    );
+    res.status(200).json(updatedGroupChat);
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+
 
 // 공지 작성 
 const createChatNotification = asyncHandler(async (req: Request, res: Response) => {
@@ -286,6 +331,8 @@ export default {
   deleteChat,
   addJoinToGroup,
   removeJoinToGroup,
+  leaveFromChat,
+  updateChatName,
   createChatNotification,
   editChatNotification,
   demoteChatNotification,

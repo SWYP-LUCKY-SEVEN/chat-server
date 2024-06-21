@@ -242,13 +242,13 @@ const removeFromGroup = async (chatId: string, reqUserId: string, userId: string
 }
 const deleteChat = async (chatId: string, userId: string) => {
   const isChat = await Chat.findOne({ groupAdmin: userId, isGroupChat: true });
-
+  
   if (!isChat) {
     const error = new Error("방장 아님") as IError;
     error.statusCode = 409;
     throw error;
   } else {
-    const deletedChat = await Chat.updateOne({ _id: chatId }, { $set: { isDeleted: true } });
+    const deletedChat = await Chat.findByIdAndDelete(chatId);
     if (!deletedChat) {
       const error = new Error("채팅 조회 삭제실패") as IError;
       error.statusCode = 500;
@@ -277,7 +277,7 @@ const addJoinToGroup = async (chatId: string, userId: string) => {
       return joinUserId.equals(userId);
     });
 
-    if (!joinDateUser) {
+    if (!joinDateUser){ 
       const joinChat = await Chat.findByIdAndUpdate(
         chatId,
         {
@@ -291,17 +291,13 @@ const addJoinToGroup = async (chatId: string, userId: string) => {
             }
           },
         },
-        {
-          new: true,
-        }
-      )
-        .where({ groupAdmin: {
+        { new: true }
+      ).where({ groupAdmin: {
                 $ne : userId
         }})
         .populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage");
-
+        .populate("groupAdmin", "-password")
+        .populate("latestMessage");
 
       if (!joinChat) {
         return isChat
@@ -318,9 +314,10 @@ const addJoinToGroup = async (chatId: string, userId: string) => {
           }
         },
         { new: true }
-      ).populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage");
+      )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password")
+      .populate("latestMessage");
 ;
       return updateChat;
     } else {
@@ -367,6 +364,71 @@ const removeJoinToGroup = async (chatId: string, userId: string) => {
     }
   }
 };
+
+
+
+// 사용자 채팅 로직 임의 추가
+// 사용자 채팅에서 제거 (강퇴, 탈퇴 처리)
+// 채팅에 남은 사용자가 없을 경우. 채팅방 삭제
+const leaveFromChat = async (chatId: string, userId: string, transfer: string|null) => { 
+  const isAddedUserChat = await Chat.findOne({ _id: chatId, isGroupChat: true, users: userId });
+
+  if (!isAddedUserChat) {
+    const error = new Error("해당 채팅방 없거나 방장 아닌 유저 또는 해당 방에 유저없음") as IError;
+    error.statusCode = 409;
+    throw error; 
+  }else if(isAddedUserChat.groupAdmin._id.toString() === userId &&
+    transfer === null){
+    console.log("방장 양도")
+    const error = new Error("방장은 양도할 유저를 선택해야 채팅방을 나갈 수 있습니다.") as IError;
+    error.statusCode = 409;
+    throw error; 
+  }else {
+    console.log(isAddedUserChat.groupAdmin._id);
+    console.log(userId);
+    const updateChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+          $pull: { users: userId },
+        },
+        {
+          new: true,
+        }
+      ).where({ isGroupChat: true })
+        .populate("users", "-password")
+    
+    if (!updateChat) {
+      const error = new Error("그륩 채팅 조회 실패") as IError;
+      error.statusCode = 404;
+      throw error;
+    } else {
+      if (updateChat?.users.length == 0) {
+        const res = await Chat.updateOne({ _id: chatId }, { $set: { isDeleted: true } });
+      }
+      return updateChat;
+    }
+  }
+}
+
+//
+const updateChatName = async (chatId: string, chatName: string, reqUserId: string) => { 
+  const chat = await Chat.findOne({ _id: chatId, groupAdmin: reqUserId, isGroupChat: true });
+
+  if (!chat) {
+    const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
+    error.statusCode = 409;
+    throw error;
+  }
+  chat.chatName = chatName;
+  const updateChat = await chat.save();
+  
+  if (!updateChat) {
+    const error = new Error("공지사항 업데이트 실패") as IError;
+    error.statusCode = 500;
+    throw error;
+  }  
+  return updateChat;
+}
 
 // 채팅방 공지 생성
 const createChatNotification = async (chatId: string, userId: ObjectId, notiContent: string) => {
@@ -544,6 +606,8 @@ export default {
   deleteChat,
   addJoinToGroup,
   removeJoinToGroup,
+  leaveFromChat,
+  updateChatName,
   createChatNotification,
   editChatNotification,
   demoteChatNotification,
