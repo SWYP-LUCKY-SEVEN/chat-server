@@ -135,7 +135,7 @@ const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
 const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(Number(studyId)) as string;
+    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
     if (reqUseId && objectChatId) {
       const deleteChat = await chatService.deleteChat(objectChatId, reqUseId);
