@@ -248,7 +248,7 @@ const deleteChat = async (chatId: string, userId: string) => {
     error.statusCode = 409;
     throw error;
   } else {
-    const deletedChat = await Chat.findByIdAndDelete(chatId);
+    const deletedChat = await Chat.updateOne({ _id: chatId }, { $set: { isDeleted: true } });
     if (!deletedChat) {
       const error = new Error("채팅 조회 삭제실패") as IError;
       error.statusCode = 500;
