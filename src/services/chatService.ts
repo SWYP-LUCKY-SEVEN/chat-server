@@ -365,22 +365,18 @@ const removeJoinToGroup = async (chatId: string, userId: string) => {
   }
 };
 
-
-
 // 사용자 채팅 로직 임의 추가
 // 사용자 채팅에서 제거 (강퇴, 탈퇴 처리)
 // 채팅에 남은 사용자가 없을 경우. 채팅방 삭제
-const leaveFromChat = async (chatId: string, userId: string, transfer: string|null) => { 
+const leaveFromChat = async (chatId: string, userId: string) => { 
   const isAddedUserChat = await Chat.findOne({ _id: chatId, isGroupChat: true, users: userId });
 
   if (!isAddedUserChat) {
     const error = new Error("해당 채팅방 없거나 방장 아닌 유저 또는 해당 방에 유저없음") as IError;
     error.statusCode = 409;
     throw error; 
-  }else if(isAddedUserChat.groupAdmin._id.toString() === userId &&
-    transfer === null){
-    console.log("방장 양도")
-    const error = new Error("방장은 양도할 유저를 선택해야 채팅방을 나갈 수 있습니다.") as IError;
+  }else if(isAddedUserChat.groupAdmin._id.toString() === userId){
+    const error = new Error("방장은 채팅방을 나갈 수 없습니다.") as IError;
     error.statusCode = 409;
     throw error; 
   }else {
