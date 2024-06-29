@@ -5,6 +5,12 @@ import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import mongoose from "mongoose";
 import { pictureService } from "@services/index";
 
+function toObjectHexString(number: any): string {
+    // 숫자를 16진수 문자열로 변환
+    const hexString = number.toString(16);
+    // 16진수 문자열을 24자리의 문자열로 패딩하여 반환
+    return hexString.padStart(24, "0").toString();
+  }
 interface IError extends Error {
     statusCode: number;
   }
@@ -12,7 +18,8 @@ interface IError extends Error {
 const getPictureData = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { picId } = req.params;
-        const result = await pictureService.getPictureData(picId);
+        const objectPicId = toObjectHexString(picId);
+        const result = await pictureService.getPictureData(objectPicId);
         res.status(201).json(result);
       } catch (error: any) {
         errorLoggerMiddleware(error as IError, req, res);
@@ -22,7 +29,8 @@ const getPictureData = asyncHandler(async (req: Request, res: Response) => {
 const getChatGallery = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { chatId } = req.params;
-        const result = await pictureService.getChatGallery(chatId);
+        const objectChatId = toObjectHexString(chatId);
+        const result = await pictureService.getChatGallery(objectChatId);
         res.status(201).json(result);
       } catch (error: any) {
         errorLoggerMiddleware(error as IError, req, res);
@@ -32,7 +40,8 @@ const getChatGallery = asyncHandler(async (req: Request, res: Response) => {
 const getChatSimpleGallery = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { chatId } = req.params;
-        const result = await pictureService.getChatSimpleGallery(chatId, 3);
+        const objectChatId = toObjectHexString(chatId);
+        const result = await pictureService.getChatSimpleGallery(objectChatId, 3);
         res.status(201).json(result);
       } catch (error: any) {
         errorLoggerMiddleware(error as IError, req, res);
@@ -45,13 +54,15 @@ const postPicture = asyncHandler(async (req: Request, res: Response) => {
         const { url } = req.body;
         const { chatId } = req.params;
         const reqUserId = req.user?._id;
-        const result = await pictureService.postPicture(url, chatId, reqUserId);
+        const objectChatId = toObjectHexString(chatId);
+        const result = await pictureService.postPicture(url, objectChatId, reqUserId);
         res.status(201).json(result);
       } catch (error: any) {
         errorLoggerMiddleware(error as IError, req, res);
         res.status(error.statusCode).json(error.message);
       }
 })
+
 export default {
     getPictureData,
     getChatGallery,

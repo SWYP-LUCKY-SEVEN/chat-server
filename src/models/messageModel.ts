@@ -1,5 +1,6 @@
-import IMessageDocument from "@src/dtos/messageDto";
 import mongoose, { Schema } from "mongoose";
+
+import IMessageDocument from "@src/dtos/messageDto";
 
 const messageSchema = new Schema<IMessageDocument>(
   {

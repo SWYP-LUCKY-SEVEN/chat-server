@@ -34,8 +34,9 @@ const getChatGallery = async(chatId: string) => {
         error.statusCode = 400;
         throw error;
     } else {
-        const PictureByDay = await Picture.aggregate([
-            { $match: { chat: chatId } },
+        const ObjectchatId = new mongoose.Types.ObjectId(chatId);
+        const pictureByDay = await Picture.aggregate([
+            { $match: { chat: ObjectchatId } },
             {
                 $lookup: {  //Join
                     from: 'users', // 조인할 컬렉션 이름 (User => users, Chat => chats)
@@ -48,14 +49,21 @@ const getChatGallery = async(chatId: string) => {
             {
                 $group: {
                     _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                    photos: { $push: { _id: '$_id', url: '$url', uploadedBy: '$uploadedByUser', timestamp: '$createdAt' } }
+                    photos: { 
+                        $push: {
+                            _id: '$_id', 
+                            url: '$url', 
+                            uploadedBy: '$uploadedByUser', 
+                            timestamp: '$createdAt' 
+                        } 
+                    }
                 }
             },
             {
               $sort: { _id: -1 } // 날짜 오름차순으로 정렬
             }
           ]);
-        return PictureByDay;
+        return pictureByDay;
     }
 }
 const getChatSimpleGallery = async(chatId: string, limit: number) => {
@@ -67,8 +75,7 @@ const getChatSimpleGallery = async(chatId: string, limit: number) => {
         const pictures = await Picture.find({ chat: chatId })
             .sort({ timestamp: -1 })    
             .limit(limit)
-            .populate("uploadedBy", "nickname pic email")
-            .populate("chat");
+            .populate("uploadedBy", "nickname pic email");
     
         if (pictures) return pictures;
         else {
@@ -91,11 +98,11 @@ const postPicture = async(url: string, chatId: string, reqUserId: string) => {
         uploadedBy: reqUserId,
         url,
     };
-    
+    console.log(newPicture)
     let picture = await Picture.create(newPicture);
-    picture = await picture
-        .populate("uploadedBy", "nickname pic")
-        .populate("chat");
+    picture = await (
+        await picture.populate("uploadedBy", "nickname pic")
+    ).populate("chat");
     
     const result = await User.populate(picture, {
         path: "chat.users",

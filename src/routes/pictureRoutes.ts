@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.route("/:picId").get(protect, pictureController.getPictureData);
 router.route("/gallery/:chatId").get(protect, pictureController.getChatGallery);
-router.route("/side/:chatId").post(protect, pictureController.getChatSimpleGallery);
+router.route("/side/:chatId").get(protect, pictureController.getChatSimpleGallery);
+
+router.route("/:chatId").post(protect, pictureController.postPicture);
 
 export default router;
