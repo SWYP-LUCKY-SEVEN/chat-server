@@ -19,7 +19,7 @@ router.delete("/group/user/:userId", chatController.leaveFromChat);
 
 router.post("/group/:studyId/notice", protect, chatController.createChatNotification);
 router.put("/group/:studyId/notice", protect, chatController.editChatNotification);
-router.patch("/group/:studyId/notice", protect, chatController.demoteChatNotification);
+router.put("/group/:studyId/notice/cancel", protect, chatController.demoteChatNotification);
 router.delete("/group/:studyId/notice", protect, chatController.removeChatNotification);
 router.get("/group/:studyId/notice/all", protect, chatController.getAllNoticeInChat);
 router.get("/group/:studyId/notice", protect, chatController.getNoticeInChat);

@@ -180,18 +180,17 @@ const removeJoinToGroup = asyncHandler(async (req: Request, res: Response) => {
 
 // 사용자 채팅 로직 임의 추가
 
-// 사용자 채팅에서 제거 (강퇴, 탈퇴 처리)
+// 사용자 채팅에서 나가기
 const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { studyId, type, transfer } = req.body;
+    const { studyId } = req.body;
     const objectChatId = toObjectHexString(studyId) as string;
     const objectUserId = toObjectHexString(userId) as string;
     if (objectChatId && objectUserId) {
       const updatedGroupChat = await chatService.leaveFromChat(
         objectChatId, 
-        objectUserId, 
-        transfer?toObjectHexString(transfer):null
+        objectUserId
       );
       res.status(200).json(updatedGroupChat);
     }
