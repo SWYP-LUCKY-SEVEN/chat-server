@@ -1,8 +1,8 @@
 import { Schema, model } from "mongoose";
 
-import { INoti } from "@src/dtos/chatDto";
+import { INoti } from "@src/models/interfaces/IChat";
 
-const notiSchema = new Schema<INoti>(
+const NotiSchema = new Schema<INoti>(
     {
       _id: { type: String, required: true, unique: true },
       isTop: { type: Boolean, default: false },
@@ -11,4 +11,4 @@ const notiSchema = new Schema<INoti>(
     { timestamps: true }
   );
   
-  export default notiSchema;
+  export default NotiSchema;

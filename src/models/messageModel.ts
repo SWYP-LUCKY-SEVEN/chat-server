@@ -1,16 +1,7 @@
-import mongoose, { Schema } from "mongoose";
+import { model } from "mongoose";
 
-import IMessageDocument from "@src/dtos/messageDto";
+import IMessageDocument from "./interfaces/IMessage";
+import MessageSchema from "@src/models/schemas/messageSchema"
 
-const messageSchema = new Schema<IMessageDocument>(
-  {
-    sender: { type: Schema.Types.ObjectId, ref: "User" },
-    content: { type: String, trim: true },
-    chat: { type: Schema.Types.ObjectId, ref: "Chat" },
-    readBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  },
-  { timestamps: true }
-);
-
-const Message = mongoose.model("Message", messageSchema);
+const Message = model<IMessageDocument>("Message", MessageSchema);
 export default Message;

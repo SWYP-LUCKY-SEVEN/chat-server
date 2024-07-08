@@ -1,15 +1,7 @@
 import { Schema, model } from "mongoose";
 
-import IPictureDocument from "@src/dtos/pictureDto";
+import IPictureDocument from "@src/models/interfaces/IPicture";
+import PictureSchema from "./schemas/pictureModel";
 
-const pictureSchema = new Schema<IPictureDocument>(
-    {
-      chat: { type: Schema.Types.ObjectId, ref: "Chat" },
-      uploadedBy: { type: Schema.Types.ObjectId, ref: "User" },
-      url: { type: String, trim: true },
-    },
-    { timestamps: true }
-  );
-  
-const Picture = model("Picture", pictureSchema);
+const Picture = model("Picture", PictureSchema);
 export default Picture;
