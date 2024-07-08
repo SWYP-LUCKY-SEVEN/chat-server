@@ -1,6 +1,6 @@
 import { errorHandler, notFound } from "@middlewares/errorMiddleware";
 
-import IUserDocument from "./dtos/userDto";
+import IUserDocument from "./models/interfaces/IUser";
 import { Server } from "socket.io";
 import colors from "colors";
 import connectDB from "@configs/db";

@@ -1,6 +1,5 @@
-import Chat from "./chatDto";
+import Chat from "./IChat";
 import { Document } from "mongoose";
-import User from "./userDto";
 
 export interface IPicture {
     chat: Chat;

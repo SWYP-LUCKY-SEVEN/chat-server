@@ -1,14 +1,15 @@
 import { Document } from "mongoose";
-import Chat from "./chatDto";
-import User from "./userDto";
+import Chat from "./IChat";
+import User from "./IUser";
 
-export interface Message {
+export interface IMessage {
   sender?: string;
+  isPic: boolean;
   content?: string;
   chat: Chat;
   readBy: User;
 }
 
-export default interface IMessageDocument extends Message, Document {
+export default interface IMessageDocument extends IMessage, Document {
   matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
