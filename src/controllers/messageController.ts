@@ -32,6 +32,22 @@ const sendMessage = asyncHandler(async (req: Request, res: Response) => {
     res.status(error.statusCode).json(error.message);
   }
 });
+
+
+const sendPicture = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { content, chatId } = req.body;
+    const reqUserId = req.user?._id;
+
+    if (reqUserId) {
+      const user = await messageService.sendMessage(content, chatId, reqUserId);
+      res.status(201).json(user);
+    }
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
 export default {
   getAllMessages,
   sendMessage,
