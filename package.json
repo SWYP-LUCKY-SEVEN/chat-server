@@ -2,10 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "description": "서버",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "set NODE_ENV=dev | nodemon -r ts-node/register -r tsconfig-paths/register src/app.ts",
-    "start": "NODE_ENV=prod ts-node -r tsconfig-paths/register src/app.ts",
+    "dev": "set NODE_ENV=dev | nodemon -r ts-node/register -r tsconfig-paths/register src/server.ts",
+    "start": "NODE_ENV=prod ts-node -r tsconfig-paths/register src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
