@@ -12,6 +12,7 @@ dotenv.config();
 
 const app = express();
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+console.log(allowedOrigins)
 
 app.use(
   helmet({

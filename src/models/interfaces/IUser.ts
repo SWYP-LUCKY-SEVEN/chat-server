@@ -1,5 +1,4 @@
 import { Document } from "mongoose";
-
 interface IUser {
   nickname?: string;
   pic: string;
