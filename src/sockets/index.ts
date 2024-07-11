@@ -29,13 +29,13 @@ export const initSocket = (server: http.Server): void => {
 
   // JWT 해독 미들웨어
   io.use((socket, next)=> {
+    console.log("middle!!");
     decodeJWTMiddleware(socket, next);
   });
 
   io.on('connection', (socket) => {
     console.log("connected to socket.io");
-    console.log((socket as Socket & { user: IUserDTO}).user)
-    handleChatEvents(io, socket);
+    handleChatEvents(io, socket as Socket & { user: IUserDTO});
     handleSetupEvents(socket);
   });
 }
