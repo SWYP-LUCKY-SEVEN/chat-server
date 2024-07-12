@@ -1,6 +1,7 @@
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import IUserDocument from "@src/models/interfaces/IUser";
+import { messageService } from "@services/index";
 import IUserDTO from '@src/dtos/userDto';
 
 export const handleChatEvents = (io: SocketIOServer, socket: Socket & { user: IUserDTO}): void => {
@@ -16,15 +17,12 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket & { user: IU
 
     socket.on("stop typing", (room) => socket.in(room._id).emit("stop typing"));
     
-    socket.on("new message", (newMessageReceived) => {
-        const user = socket.request;
+    socket.on("new message", async(newMessageReceived) => {
+        const user = socket.user;
         const chat= newMessageReceived.chat;
-        if (!chat.users) return console.log("chat user not defined");
-        chat.users.forEach((user: IUserDocument) => {
-            if (user._id == newMessageReceived.sender._id) return;
-            else {
-                socket.in(chat.id).emit("message received", newMessageReceived);
-            }
-        });
+        console.log(newMessageReceived.content);
+        if (!chat) return console.log("chat user not defined");
+        const result = await messageService.sendMessage(newMessageReceived.content, chat, user._id.toString());
+        socket.broadcast.to(chat).emit("message received", newMessageReceived);
     });
 };
