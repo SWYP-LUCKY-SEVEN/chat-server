@@ -49,6 +49,8 @@ const sendMessage = async (
   };
   let message = await Message.create(newMessage);
 
+  message = await message.populate("sender", "nickname pic");
+
   if (message) {
     await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
     return message;
