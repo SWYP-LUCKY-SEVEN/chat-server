@@ -20,6 +20,20 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
 
 const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   try {
+    const reqUserId = req.user?._id;
+
+    if (reqUserId) {
+      res.status(201).json(req.body);
+    }
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+
+
+const sendPicture = asyncHandler(async (req: Request, res: Response) => {
+  try {
     const { content, chatId } = req.body;
     const reqUserId = req.user?._id;
 
