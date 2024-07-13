@@ -19,10 +19,10 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket & { user: IU
     
     socket.on("new message", async(newMessageReceived) => {
         const user = socket.user;
-        const chat= newMessageReceived.chat;
+        const chat= newMessageReceived.chatId;
         console.log(newMessageReceived.content);
         if (!chat) return console.log("chat user not defined");
         const result = await messageService.sendMessage(newMessageReceived.content, chat, user._id.toString());
-        socket.broadcast.to(chat).emit("message received", newMessageReceived);
+        socket.in(chat).emit("message received", result);
     });
 };
