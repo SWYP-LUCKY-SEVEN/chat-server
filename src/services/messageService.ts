@@ -31,6 +31,31 @@ const getAllMessages = async (chatId: string) => {
   }
 };
 
+const getRecentMessages = async (chatId: string) => {
+  if (!chatId) {
+    const error = new Error("chatId 확인") as IError;
+    error.statusCode = 400;
+    throw error;
+  } else {
+    const messages = await Message.find({ chat: chatId })
+      .populate("sender", "nickname pic email");
+
+    const chat = await Chat.findById(chatId, { noti:0 });
+    const data = {
+      chat : chat,
+      messages : messages
+    }
+
+    if (messages && chat) return data;
+    else {
+      const error = new Error("메시지 조회 실패") as IError;
+      error.statusCode = 404;
+      throw error;
+    }
+  }
+};
+
+
 const sendMessage = async (
   content: string,
   chatId: string,
@@ -92,6 +117,6 @@ const sendPicture = async (
 
 export default {
   getAllMessages,
+  getRecentMessages,
   sendMessage,
-  
 };
