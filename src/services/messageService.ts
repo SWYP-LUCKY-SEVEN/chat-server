@@ -14,10 +14,15 @@ const getAllMessages = async (chatId: string) => {
     throw error;
   } else {
     const messages = await Message.find({ chat: chatId })
-      .populate("sender", "nickname pic email")
-      .populate("chat");
+      .populate("sender", "nickname pic email");
 
-    if (messages) return messages;
+    const chat = await Chat.findById(chatId, { noti:0 });
+    const data = {
+      chat : chat,
+      messages : messages
+    }
+
+    if (messages && chat) return data;
     else {
       const error = new Error("메시지 조회 실패") as IError;
       error.statusCode = 404;
@@ -43,18 +48,41 @@ const sendMessage = async (
     chat: chatId,
   };
   let message = await Message.create(newMessage);
-  message = await (
-    await message.populate("sender", "nickname pic")
-  ).populate("chat");
 
-  const result = await User.populate(message, {
-    path: "chat.users",
-    select: "nickname pic email",
-  });
+  message = await message.populate("sender", "nickname pic");
 
-  if (result) {
-    await Chat.findByIdAndUpdate(chatId, { latestMessage: result });
-    return result;
+  if (message) {
+    await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
+    return message;
+  } else {
+    const error = new Error("메시지 전송에 실패") as IError;
+    error.statusCode = 500;
+    throw error;
+  }
+};
+
+const sendPicture = async (
+  content: string,
+  chatId: string,
+  reqUserId: string
+) => {
+  if (!content || !chatId) {
+    const error = new Error("유효하지 않은 요청") as IError;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const newMessage = {
+    sender: reqUserId,
+    isPic:true,
+    content,
+    chat: chatId,
+  };
+  let message = await Message.create(newMessage);
+  
+  if (message) {
+    await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
+    return message;
   } else {
     const error = new Error("메시지 전송에 실패") as IError;
     error.statusCode = 500;
@@ -65,4 +93,5 @@ const sendMessage = async (
 export default {
   getAllMessages,
   sendMessage,
+  
 };

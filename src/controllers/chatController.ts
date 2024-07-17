@@ -43,7 +43,6 @@ const getAccessChat = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-
 const fetchChats = asyncHandler(async (req: Request, res: Response) => {
   try {
     const reqUseId = req.user?._id;

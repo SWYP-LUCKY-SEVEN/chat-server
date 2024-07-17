@@ -1,8 +1,6 @@
 import { userService } from "@services/index";
 import { toObjectHexString } from "@src/configs/toObjectHexString";
-import { INoti } from "@src/dtos/chatDto";
 import Chat from "@src/models/chatModel";
-import Noti from "@src/models/notiModel";
 import User from "@src/models/userModel";
 import { randomUUID } from "crypto";
 import mongoose, { ObjectId } from 'mongoose';

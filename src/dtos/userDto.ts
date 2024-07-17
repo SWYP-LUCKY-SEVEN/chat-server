@@ -1,11 +1,8 @@
-import { Document } from "mongoose";
+import { ObjectId } from "mongoose";
 
-interface IUser {
+export default interface IUserDTO {
+  _id:ObjectId;
   nickname?: string;
   pic: string;
   isAdmin: boolean;
-}
-
-export default interface IUserDocument extends IUser, Document {
-  matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
