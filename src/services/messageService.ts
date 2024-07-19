@@ -31,13 +31,16 @@ const getAllMessages = async (chatId: string) => {
   }
 };
 
-const getRecentMessages = async (chatId: string) => {
+const getRecentMessages = async (chatId: string, page:number, limit: number) => {
   if (!chatId) {
     const error = new Error("chatId 확인") as IError;
     error.statusCode = 400;
     throw error;
   } else {
     const messages = await Message.find({ chat: chatId })
+      .sort({ timestamp: -1 })
+      .skip(page*limit)
+      .limit(limit)
       .populate("sender", "nickname pic email");
 
     const chat = await Chat.findById(chatId, { noti:0 });
