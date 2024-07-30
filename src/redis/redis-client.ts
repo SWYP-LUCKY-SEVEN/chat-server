@@ -1,4 +1,5 @@
 import { createClient, RedisClientOptions } from "@redis/client";
+import "../configs/env";
 const redisOptions: RedisClientOptions = {
   socket: {
     // host: process.env.REDIS_HOST,
