@@ -44,6 +44,7 @@ const getRecentMessages = async (chatId: string, page:number, limit: number) => 
     console.log(`lrange room:${chatId} 0 -1`);
     const messages = await redisClient.lRange(`room:${chatId}`, 0, -1);
     console.log(messages);
+
     let resultMessages;
     if(messages) {
       const parsedMessages = messages.map(message => JSON.parse(message));
@@ -69,7 +70,7 @@ const getRecentMessages = async (chatId: string, page:number, limit: number) => 
       messages : resultMessages
     }
 
-    if (messages && chat) return data;
+    if (resultMessages && chat) return data;
     else {
       const error = new Error("메시지 조회 실패") as IError;
       error.statusCode = 404;
