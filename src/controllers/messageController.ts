@@ -18,6 +18,17 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { chatId } = req.params;
+    const user = await messageService.getRecentMessages(chatId, 0, 30);
+    res.status(201).json(user);
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+
 const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   try {
     const reqUserId = req.user?._id;
@@ -48,5 +59,6 @@ const sendPicture = asyncHandler(async (req: Request, res: Response) => {
 });
 export default {
   getAllMessages,
+  getRecentMessages,
   sendMessage,
 };

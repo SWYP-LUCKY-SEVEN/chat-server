@@ -44,7 +44,6 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     console.log(user)
 
     if (user) {
-      await saveUserKey(pk, objectId);
       res.status(201).json(user);
     } else {
       const error = new Error("유저 생성에 실패") as IError;
@@ -57,17 +56,6 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     res.status(error.statusCode).json(error.message);
   }
 });
-
-const saveUserKey = async (pk: string, objectId: string) => {
-  if (!pk && !objectId) {
-    const error = new Error("pk objectId 필수") as IError;
-    error.statusCode = 400;
-    throw error;
-  } else {
-    await redisClient.set(pk, objectId);
-    await redisClient.set(objectId, pk);
-  }
-};
 
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   try {
@@ -87,9 +75,6 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
       error.statusCode = 404;
       throw error;
     }
-
-    await redisClient.del(id);
-    await redisClient.del(objectId);
 
     res.status(200).json({ message: "유저 삭제 완료" });
   } catch (error: any) {
@@ -123,27 +108,6 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
     }
 
     res.status(200).json(user);
-  } catch (error: any) {
-    errorLoggerMiddleware(error as IError, req, res);
-    res.status(error.statusCode).json(error.message);
-  }
-});
-
-const getUserKey = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { key } = req.query;
-    if (key) {
-      //@ts-ignore
-      await redisClient.get(key as string, (err: any, value: any) => {
-        if (!value) {
-          const error = new Error("유저 키 발견 안됌") as IError;
-          error.statusCode = 404;
-          throw error;
-        } else {
-          res.status(201).json(value);
-        }
-      });
-    }
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
@@ -188,8 +152,6 @@ export default {
   createUser,
   deleteUser,
   updateUser,
-  saveUserKey,
-  getUserKey,
   signUpUser,
   signInUser,
   getUsers,
