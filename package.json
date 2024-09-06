@@ -28,6 +28,7 @@
     "redis": "^4.7.0",
     "server": "file:",
     "socket.io": "^4.7.5",
+    "tsc-alias": "^1.8.10",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
