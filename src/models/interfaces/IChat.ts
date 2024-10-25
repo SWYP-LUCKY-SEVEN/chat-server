@@ -20,6 +20,7 @@ interface IChat {
   isGroupChat: boolean;
   users: User[];
   latestMessage: IMessage;
+  messageSeq: number;
   groupAdmin: User;
   isDeleted: boolean
   noti: INoti[]
