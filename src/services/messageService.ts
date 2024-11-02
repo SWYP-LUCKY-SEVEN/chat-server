@@ -35,48 +35,33 @@ const getAllMessages = async (chatId: string) => {
   }
 };
 
+// 최신 메세지 redis 사용 안할 듯 함.
 const getRecentMessages = async (chatId: string, page:number, limit: number) => {
   if (!chatId) {
     const error = new Error("chatId 확인") as IError;
     error.statusCode = 400;
     throw error;
-  } else {
-    console.log(`lrange room:${chatId} 0 -1`);
-    const messages = await redisClient.lRange(`room:${chatId}`, 0, -1);
-    console.log(messages);
-
-    let resultMessages;
-    if(messages) {
-      const parsedMessages = messages.map(message => JSON.parse(message));
-      if(messages.length < limit){
-        const loadMessages = await Message.find({ chat: chatId })
-          .sort({ timestamp: -1 })
-          .skip(messages.length)
-          .limit(limit - messages.length)
-          .populate("sender", "nickname pic email");
-        resultMessages = parsedMessages.concat(loadMessages);
-      }
-    } else {
-      const loadMessages = await Message.find({ chat: chatId })
-        .sort({ timestamp: -1 })
-        .limit(limit)
-        .populate("sender", "nickname pic email");
-      resultMessages = loadMessages;
-    }
-
-    const chat = await Chat.findById(chatId, { noti:0 });
-    const data = {
-      chat : chat,
-      messages : resultMessages
-    }
-
-    if (resultMessages && chat) return data;
-    else {
-      const error = new Error("메시지 조회 실패") as IError;
-      error.statusCode = 404;
-      throw error;
-    }
   }
+  const messages = await redisClient.lRange(`room:${chatId}`, 0, -1);
+
+  let resultMessages = await Message.find({ chat: chatId })
+    .sort({ index : -1 }) // index == 메세지 순서
+    .skip(page*limit)
+    .limit(limit)
+    .populate("sender", "nickname pic email");
+
+  const chat = await Chat.findById(chatId, { noti:0 });
+  const data = {
+    chat : chat,
+    messages : resultMessages
+  }
+
+  if (resultMessages && chat) return data;
+  else {
+    const error = new Error("메시지 조회 실패") as IError;
+    error.statusCode = 404;
+    throw error;
+  }  
 };
 
 
@@ -91,38 +76,32 @@ const sendMessage = async (
     throw error;
   }
 
+  // seq는 실제로 메세지가 생성되지 않았더라도, 증가 해도 됨.
+  const chatRoom = await Chat.findByIdAndUpdate(
+    chatId,
+    {
+      $inc: { messageSeq: 1 }, // messageSeq 필드를 1 증가
+    },
+    {
+      new: true, // 업데이트 후의 새로운 데이터를 반환
+    }
+  );  
+
+  if (chatRoom == null) {
+    const error = new Error("존재하지 않는 채팅") as IError;
+    error.statusCode = 404;
+    throw error;
+  }
+
   const newMessage = {
+    index: chatRoom.messageSeq,
     sender: reqUserId,
     content,
     chat: chatId,
   };
+
   let message:any = await Message.create(newMessage);
   message = await message.populate("sender", "nickname pic");
-
-  const cacheData = {
-    sender : message.sender,
-    content,
-    createdAt : message.createdAt
-  }
-
-  try {
-    const lastMessage = await redisClient.lRange(`room:${chatId}`, 0, 0); //최근 메시지와 비교
-    if(lastMessage){
-      const lastM:any = JSON.parse(lastMessage[0]);
-      const lastMTime = lastM.createdAt;
-      const timeDifference = message.createdAt - lastMTime; //Date 간의 연산은 밀리초 단위로 계산됨.
-      if (timeDifference >= EXPIRY_TIME_THRESHOLD) {
-          await redisClient.expire(`room:${chatId}`, TTL_SECONDS);
-      }
-    } else {
-      await redisClient.expire(`room:${chatId}`, TTL_SECONDS);
-    }
-    const result = await redisClient.lPush(`room:${chatId}`, JSON.stringify(cacheData));
-    console.log(`Message added to room:${chatId}:`, result);
-    await redisClient.LTRIM(`room:${chatId}`, 0, 29);
-  } catch (err) {
-      console.error('Error:', err);
-  }
 
   if (message) {
     await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
@@ -133,6 +112,63 @@ const sendMessage = async (
     throw error;
   }
 };
+
+const findMessagesByContent  = async (
+  chatId: string,
+  findText: string
+) => {
+  if (!findText || !chatId) {
+    const error = new Error("유효하지 않은 요청") as IError;
+    error.statusCode = 400; 
+    throw error;
+  }
+
+  // 검색된 채팅 index List 추출
+  const messageIndexes = await Message.find(
+    {
+      chat: chatId,
+      content: { $regex: findText, $options: "i" } // 대소문자 구분 없이 검색
+    },
+    { index: 1, _id: 0 } // _id는 디폴트라 언급해서 제외 필요.
+  );
+  
+  const indexList = messageIndexes.map(message => message.index);
+
+  if (!indexList || indexList.length === 0) {
+    const error = new Error("찾는 메세지가 없습니다.") as IError;
+    error.statusCode = 404; 
+    throw error;
+  }
+
+  return indexList;
+}
+
+
+const findMessagesBetweenIndex = async (
+  chatId : string,
+  startIndex : Number,
+  targetIndex : Number
+) => {
+  if (!chatId || targetIndex == null) {
+    const error = new Error("유효하지 않은 요청") as IError;
+    error.statusCode = 400;
+    throw error;
+  }
+  if (startIndex <= targetIndex) {
+    const error = new Error("찾는 index가 이미 현재 보유한 데이터에 존재합니다.") as IError;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const messages = await Message.find({
+    chat: chatId,
+    index: { $lte: startIndex, $gte: targetIndex } // startIndex 이하, targetIndex 이상
+  })
+  .sort({ index: -1 }) // 내림차순 (최근 메세지가 앞으로)
+  .populate("sender", "nickname pic");
+
+  return messages;
+}
 
 const sendPicture = async (
   content: string,
@@ -167,4 +203,6 @@ export default {
   getAllMessages,
   getRecentMessages,
   sendMessage,
+  findMessagesByContent,
+  findMessagesBetweenIndex
 };
