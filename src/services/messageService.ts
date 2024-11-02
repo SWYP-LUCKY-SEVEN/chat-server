@@ -45,7 +45,7 @@ const getRecentMessages = async (chatId: string, page:number, limit: number) => 
   const messages = await redisClient.lRange(`room:${chatId}`, 0, -1);
 
   let resultMessages = await Message.find({ chat: chatId })
-    .sort({ timestamp: -1 })
+    .sort({ index : -1 }) // index == 메세지 순서
     .skip(page*limit)
     .limit(limit)
     .populate("sender", "nickname pic email");
@@ -113,23 +113,61 @@ const sendMessage = async (
   }
 };
 
-const findMessageText = async (
-  findText: string,
+const findMessagesByContent  = async (
   chatId: string,
-  LoadStartIndex: Number
+  findText: string
 ) => {
   if (!findText || !chatId) {
+    const error = new Error("유효하지 않은 요청") as IError;
+    error.statusCode = 400; 
+    throw error;
+  }
+
+  // 검색된 채팅 index List 추출
+  const messageIndexes = await Message.find(
+    {
+      chat: chatId,
+      content: { $regex: findText, $options: "i" } // 대소문자 구분 없이 검색
+    },
+    { index: 1, _id: 0 } // _id는 디폴트라 언급해서 제외 필요.
+  );
+  
+  const indexList = messageIndexes.map(message => message.index);
+
+  if (!indexList || indexList.length === 0) {
+    const error = new Error("찾는 메세지가 없습니다.") as IError;
+    error.statusCode = 404; 
+    throw error;
+  }
+
+  return indexList;
+}
+
+
+const findMessagesBetweenIndex = async (
+  chatId : string,
+  startIndex : Number,
+  targetIndex : Number
+) => {
+  if (!chatId || targetIndex == null) {
     const error = new Error("유효하지 않은 요청") as IError;
     error.statusCode = 400;
     throw error;
   }
-  
-  const message = await Message.find(
-    { 
-      content:findText 
-    }
-  )
+  if (startIndex <= targetIndex) {
+    const error = new Error("찾는 index가 이미 현재 보유한 데이터에 존재합니다.") as IError;
+    error.statusCode = 400;
+    throw error;
+  }
 
+  const messages = await Message.find({
+    chat: chatId,
+    index: { $lte: startIndex, $gte: targetIndex } // startIndex 이하, targetIndex 이상
+  })
+  .sort({ index: -1 }) // 내림차순 (최근 메세지가 앞으로)
+  .populate("sender", "nickname pic");
+
+  return messages;
 }
 
 const sendPicture = async (
@@ -165,4 +203,6 @@ export default {
   getAllMessages,
   getRecentMessages,
   sendMessage,
+  findMessagesByContent,
+  findMessagesBetweenIndex
 };
