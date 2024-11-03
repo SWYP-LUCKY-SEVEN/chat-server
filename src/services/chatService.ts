@@ -10,14 +10,32 @@ const { ObjectId } = mongoose.Types;
 interface IError extends Error {
   statusCode: number;
 }
-const getChat = async (studyId: string, userId: string) => {
-  if (!studyId) {
+
+const isRoomAuth = async (chatId: string, userId: string) => {
+  const chatObjectId = toObjectHexString(chatId);
+
+  const chat = await Chat.findById(chatObjectId).populate("users", "_id");
+
+  if (!chat) {
+    throw new Error("존재하지 않는 채팅방입니다.");
+  }
+
+  const userObjectId = toObjectHexString(userId);
+  
+  if (!chat.users.some(user => user._id.toString() === userObjectId)) {
+    throw new Error("접근 권한이 없습니다.");
+  }
+}
+
+// TODO studyId는 => chatId(ObjectId)로 변환해야함.
+const getChat = async (chatId: string, userId: string) => {
+  if (!chatId) {
     const error = new Error("studyId 필수") as IError;
     error.statusCode = 400;
     throw error;
   }
 
-  const _id = toObjectHexString(studyId)
+  const _id = toObjectHexString(chatId)
   const isChat = await Chat.find({
     _id,
     isDeleted: false,
@@ -39,6 +57,7 @@ const getChat = async (studyId: string, userId: string) => {
     return isChat[0];
   }
 };
+
 const getAccessChat = async (userId: string, reqUseId: string) => {
   if (!userId) {
     const error = new Error("없는 유저 id") as IError;
@@ -132,6 +151,7 @@ const createGroupChat = async (userId: any, chatId: any, name: string) => {
   const createdChat = await Chat.create({
     _id: chatId,
     chatName: name,
+    messageSeq: 0,
     users: userId,
     isGroupChat: true,
     groupAdmin: userId,
@@ -590,6 +610,7 @@ const getNoticeInChat = async (chatId: string, userId: string, noticeId: string)
 
 
 export default {
+  isRoomAuth,
   getChat,
   getAccessChat,
   fetchChats,
