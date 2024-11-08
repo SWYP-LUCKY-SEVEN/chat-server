@@ -66,7 +66,7 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
     // 유저 검증 필요.
 
     const { chatId } = req.params;
-    const { findText, startIndex } = req.body;
+    const { startIndex, findText } = req.body;
 
     chatService.isRoomAuth(chatId, reqUserId);
 
