@@ -17,13 +17,17 @@ const isRoomAuth = async (chatId: string, userId: string) => {
   const chat = await Chat.findById(chatObjectId).populate("users", "_id");
 
   if (!chat) {
-    throw new Error("존재하지 않는 채팅방입니다.");
+    const error = new Error("존재하지 않는 채팅방입니다.") as IError;
+    error.statusCode = 400;
+    throw error;
   }
 
   const userObjectId = toObjectHexString(userId);
   
   if (!chat.users.some(user => user._id.toString() === userObjectId)) {
-    throw new Error("접근 권한이 없습니다.");
+    const error = new Error("접근 권한이 없습니다.") as IError;
+    error.statusCode = 400;
+    throw error;
   }
 }
 

@@ -10,6 +10,11 @@ interface IError extends Error {
 const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { chatId } = req.params;
+    
+    if(!Number(chatId)) {
+      res.status(404).json({ message: "입력값 오류입니다." });
+    }
+
     const user = await messageService.getAllMessages(chatId);
     res.status(201).json(user);
   } catch (error: any) {
@@ -21,6 +26,11 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
 const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { chatId } = req.params;
+    
+    if(!Number(chatId)) {
+      res.status(404).json({ message: "입력값 오류입니다." });
+    }
+
     const user = await messageService.getRecentMessages(chatId, 0, 30);
     res.status(201).json(user);
   } catch (error: any) {
@@ -36,11 +46,12 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
     const { chatId } = req.params;
     const { startIndex, range } = req.query;
 
-    chatService.isRoomAuth(chatId, reqUserId);
-
-    if (!startIndex) {
+    if(!Number(chatId) || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+
+    await chatService.isRoomAuth(chatId, reqUserId);
+
     const startIndexNum = parseInt(startIndex as string, 10);
 
     let targetIndex = startIndexNum;
@@ -68,7 +79,11 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
     const { chatId } = req.params;
     const { startIndex, findText } = req.query;
 
-    chatService.isRoomAuth(chatId, reqUserId);
+    if(!Number(chatId) || !startIndex || !findText) {
+      res.status(404).json({ message: "입력값 오류입니다." });
+    }
+
+    await chatService.isRoomAuth(chatId, reqUserId);
 
     const startIndexNum = parseInt(startIndex as string, 10);
 
@@ -92,11 +107,12 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
     const { chatId } = req.params;
     const { findIndex, startIndex } = req.query;
 
-    chatService.isRoomAuth(chatId, reqUserId);
-
-    if (!findIndex || !startIndex) {
+    if(!Number(chatId) || !findIndex || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+
+    await chatService.isRoomAuth(chatId, reqUserId);
+
     const findIndexNum = parseInt(findIndex as string, 10);
     const startIndexNum = parseInt(startIndex as string, 10);
 
