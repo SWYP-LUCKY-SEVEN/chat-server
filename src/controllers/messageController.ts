@@ -34,20 +34,20 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
     const reqUserId = req.user?._id;
     // 유저 검증 필요.
     const { chatId } = req.params;
-    const { startIndex, range } = req.body;
+    const { startIndex, range } = req.query;
 
     chatService.isRoomAuth(chatId, reqUserId);
 
     if (!startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
-    const startIndexNum = parseInt(startIndex, 10);
+    const startIndexNum = parseInt(startIndex as string, 10);
 
     let targetIndex = startIndexNum;
     if (!range) {
       targetIndex += parseInt(process.env.CHAT_MESSAGE_RANGE_DEFAULT!, 10); //default 30
     } else {
-      targetIndex += parseInt(range, 10);
+      targetIndex += parseInt(range as string, 10);
     }
 
     const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, targetIndex);
@@ -66,13 +66,13 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
     // 유저 검증 필요.
 
     const { chatId } = req.params;
-    const { startIndex, findText } = req.body;
+    const { startIndex, findText } = req.query;
 
     chatService.isRoomAuth(chatId, reqUserId);
 
-    const startIndexNum = parseInt(startIndex, 10);
+    const startIndexNum = parseInt(startIndex as string, 10);
 
-    const indexList = await messageService.findMessagesByContent(chatId, findText);
+    const indexList = await messageService.findMessagesByContent(chatId, findText as string);
 
     const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, indexList.at(0)!.valueOf())
 
@@ -90,15 +90,15 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
     // 유저 검증 필요.
 
     const { chatId } = req.params;
-    const { findIndex, startIndex } = req.body;
+    const { findIndex, startIndex } = req.query;
 
     chatService.isRoomAuth(chatId, reqUserId);
 
     if (!findIndex || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
-    const findIndexNum = parseInt(findIndex, 10);
-    const startIndexNum = parseInt(startIndex, 10);
+    const findIndexNum = parseInt(findIndex as string, 10);
+    const startIndexNum = parseInt(startIndex as string, 10);
 
     const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, findIndexNum);
 
