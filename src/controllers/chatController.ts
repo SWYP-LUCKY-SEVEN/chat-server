@@ -16,6 +16,7 @@ function toObjectHexString(number: any): string {
 interface IError extends Error {
   statusCode: number;
 }
+
 const getChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
@@ -29,33 +30,34 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
     res.status(error.statusCode).json(error.message);
   }
 });
-const getAccessChat = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.body;
-    const reqUseId = req.user?._id;
-    if (reqUseId) {
-      const user = await chatService.getAccessChat(userId, reqUseId);
-      res.status(200).json(user);
-    }
-  } catch (error: any) {
-    errorLoggerMiddleware(error as IError, req, res);
-    res.status(error.statusCode).json(error.message);
-  }
-});
 
-const fetchChats = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const reqUseId = req.user?._id;
-    console.log(reqUseId, "reqUseId")
-    if (reqUseId) {
-      const user = await chatService.fetchChats(reqUseId);
-      res.status(200).json(user);
-    }
-  } catch (error: any) {
-    errorLoggerMiddleware(error as IError, req, res);
-    res.status(error.statusCode).json(error.message);
-  }
-});
+// const getAccessChat = asyncHandler(async (req: Request, res: Response) => {
+//   try {
+//     const { userId } = req.body;
+//     const reqUseId = req.user?._id;
+//     if (reqUseId) {
+//       const user = await chatService.getAccessChat(userId, reqUseId);
+//       res.status(200).json(user);
+//     }
+//   } catch (error: any) {
+//     errorLoggerMiddleware(error as IError, req, res);
+//     res.status(error.statusCode).json(error.message);
+//   }
+// });
+
+// const fetchChats = asyncHandler(async (req: Request, res: Response) => {
+//   try {
+//     const reqUseId = req.user?._id;
+//     console.log(reqUseId, "reqUseId")
+//     if (reqUseId) {
+//       const user = await chatService.fetchChats(reqUseId);
+//       res.status(200).json(user);
+//     }
+//   } catch (error: any) {
+//     errorLoggerMiddleware(error as IError, req, res);
+//     res.status(error.statusCode).json(error.message);
+//   }
+// });
 
 const createGroupChat = asyncHandler(async (req: Request, res: Response) => {
   try {
@@ -146,13 +148,13 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const addJoinToGroup = asyncHandler(async (req: Request, res: Response) => {
+const recordUserJoin = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
     const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
     if (reqUseId && objectChatId) {
-      const deleteChat = await chatService.addJoinToGroup(objectChatId, reqUseId);
+      const deleteChat = await chatService.recordUserJoin(objectChatId, reqUseId);
       res.status(200).json(deleteChat);
     }
   } catch (error: any) {
@@ -161,13 +163,13 @@ const addJoinToGroup = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const removeJoinToGroup = asyncHandler(async (req: Request, res: Response) => {
+const recordUserOut = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
     const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
     if (reqUseId && objectChatId) {
-      const deleteChat = await chatService.removeJoinToGroup(objectChatId, reqUseId);
+      const deleteChat = await chatService.recordUserOut(objectChatId, reqUseId);
       res.status(200).json(deleteChat);
     }
   } catch (error: any) {
@@ -320,15 +322,13 @@ const getNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getChat,
-  getAccessChat,
-  fetchChats,
   createGroupChat,
   addToGroup,
   updateGroupChat,
   removeFromGroup,
   deleteChat,
-  addJoinToGroup,
-  removeJoinToGroup,
+  recordUserJoin,
+  recordUserOut,
   leaveFromChat,
   updateChatName,
   createChatNotification,

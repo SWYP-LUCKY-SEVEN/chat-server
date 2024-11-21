@@ -3,7 +3,7 @@ import Chat from "./IChat";
 import User from "./IUser";
 
 export interface IMessage {
-  index: number;
+  index: Number;
   sender?: string;
   isPic: boolean;
   content?: string;

@@ -62,76 +62,79 @@ const getChat = async (chatId: string, userId: string) => {
   }
 };
 
-const getAccessChat = async (userId: string, reqUseId: string) => {
-  if (!userId) {
-    const error = new Error("없는 유저 id") as IError;
-    error.statusCode = 400;
-    throw error;
-  }
+// const getAccessChat = async (userId: string, reqUseId: string) => {
+//   if (!userId) {
+//     const error = new Error("없는 유저 id") as IError;
+//     error.statusCode = 400;
+//     throw error;
+//   }
 
-  const isChat = await Chat.find({
-    isGroupChat: false,
-    $and: [
-      { users: { $elemMatch: { $eq: reqUseId } } },
-      { users: { $elemMatch: { $eq: userId } } },
-    ],
-  })
-    .populate("users", "-password")
-    .populate("latestMessage");
+//   const isChat = await Chat.find({
+//     isGroupChat: false,
+//     $and: [
+//       { users: { $elemMatch: { $eq: reqUseId } } },
+//       { users: { $elemMatch: { $eq: userId } } },
+//     ],
+//   })
+//     .populate("users", "-password")
+//     .populate("latestMessage");
 
-  const resultChat = await User.populate(isChat, {
-    path: "latestMessage.sender",
-    select: "name pic email",
-  });
+//   const resultChat = await User.populate(isChat, {
+//     path: "latestMessage.sender",
+//     select: "name pic email",
+//   });
 
-  if (resultChat && resultChat?.length > 0) {
-    return isChat[0];
-  } else {
-    const createdChat = await Chat.create({
-      chatName: "sender",
-      isGroupChat: false,
-      users: [reqUseId, userId],
-    });
-    if (!createdChat) {
-      const error = new Error("1:1 채팅 생성 실패") as IError;
-      error.statusCode = 400;
-      throw error;
-    }
-    const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
-      "users",
-      "-password"
-    );
-    if (FullChat) return FullChat;
-    else {
-      const error = new Error("1:1 채팅 조회 실패") as IError;
-      error.statusCode = 404;
-      throw error;
-    }
-  }
-};
-const fetchChats = async (reqUseId: string) => {
-  const chats = await Chat.find({
-    $or: [
-      // { users: { $elemMatch: { $eq: reqUseId } } },
-      { users: reqUseId }
-    ]
-  })
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage");
+//   if (resultChat && resultChat?.length > 0) {
+//     return isChat[0];
+//   } else {
+//     const createdChat = await Chat.create({
+//       chatName: "sender",
+//       isGroupChat: false,
+//       users: [reqUseId, userId],
+//     });
+//     if (!createdChat) {
+//       const error = new Error("1:1 채팅 생성 실패") as IError;
+//       error.statusCode = 400;
+//       throw error;
+//     }
+//     const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
+//       "users",
+//       "-password"
+//     );
+//     if (FullChat) return FullChat;
+//     else {
+//       const error = new Error("1:1 채팅 조회 실패") as IError;
+//       error.statusCode = 404;
+//       throw error;
+//     }
+//   }
+// };
 
-  const resultChat = await User.populate(chats, {
-    path: "latestMessage.sender",
-    select: "nickname pic email",
-  });
 
-  if (resultChat) return resultChat;
-  else {
-    const error = new Error("1:1 채팅 조회 실패") as IError;
-    error.statusCode = 404;
-    throw error;
-  }
-};
+
+// const fetchChats = async (reqUseId: string) => {
+//   const chats = await Chat.find({
+//     $or: [
+//       // { users: { $elemMatch: { $eq: reqUseId } } },
+//       { users: reqUseId }
+//     ]
+//   })
+//     .populate("users", "-password")
+//     .populate("groupAdmin", "-password")
+//     .populate("latestMessage");
+
+//   const resultChat = await User.populate(chats, {
+//     path: "latestMessage.sender",
+//     select: "nickname pic email",
+//   });
+
+//   if (resultChat) return resultChat;
+//   else {
+//     const error = new Error("1:1 채팅 조회 실패") as IError;
+//     error.statusCode = 404;
+//     throw error;
+//   }
+// };
 
 const createGroupChat = async (userId: any, chatId: any, name: string) => {
   const existUser = await userService.getUser(userId)
@@ -281,110 +284,95 @@ const deleteChat = async (chatId: string, userId: string) => {
 }
 
 
-const addJoinToGroup = async (chatId: string, userId: string) => {
-  const userObjectId = new mongoose.Types.ObjectId(userId);
-  const isChat = await Chat.findOne({ _id: chatId, isGroupChat: true })
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage");
-;
-
-  if (!isChat) {
-    const error = new Error("채팅 없음") as IError;
-    error.statusCode = 409;
-    throw error;
-  } else {
-    const joinDateUser = isChat.joinDates.find(x => {
-      const joinUserId = new mongoose.Types.ObjectId(x.userId); 
-      return joinUserId.equals(userId);
-    });
-
-    if (!joinDateUser){ 
-      const joinChat = await Chat.findByIdAndUpdate(
-        chatId,
-        {
-          $push: {
-            joinDates:
-            {
-              userId,
-              joinedDate: new Date(),
-              updatedDate: new Date(),
-              isRemoved: false,
-            }
-          },
-        },
-        { new: true }
-      ).where({ groupAdmin: {
-                $ne : userId
-        }})
-        .populate("users", "-password")
-        .populate("groupAdmin", "-password")
-        .populate("latestMessage");
-
-      if (!joinChat) {
-        return isChat
-      }
-      return joinChat;
-    } else if (joinDateUser && joinDateUser.isRemoved) { 
-      const updateChat = await Chat.findOneAndUpdate(
-        { _id: chatId, "joinDates.userId": userId },
-        {
-          $set: { 
-            "joinDates.$.joinedDate": new Date(),
-            "joinDates.$.updatedDate": new Date(),
-            "joinDates.$.isRemoved": false,
-          }
-        },
-        { new: true }
-      )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
-      .populate("latestMessage");
-;
-      return updateChat;
-    } else {
-      return isChat
-    }
-  }
-}
-
-const removeJoinToGroup = async (chatId: string, userId: string) => {
+// 채팅에 참가 여부 활성화하고,
+// 채팅방 입장, 나갔음 표시를 위해 존재.
+const recordUserJoin = async (chatId: string, userId: string) => {
   const isChat = await Chat.findOne({ _id: chatId, isGroupChat: true });
 
   if (!isChat) {
     const error = new Error("채팅 없음") as IError;
     error.statusCode = 409;
     throw error;
-  } else {
-  const joinDateUser = isChat.joinDates.find(x => {
-      const joinUserId = new mongoose.Types.ObjectId(x.userId); 
-      return joinUserId.equals(userId);
-    });
-
-    if (joinDateUser) {
-      const updateChat = await Chat.findOneAndUpdate(
-        { _id: chatId, "joinDates.userId": userId },
-        {
-          $set: { 
-            "joinDates.$.updatedDate": new Date(),
-            "joinDates.$.isRemoved": true,
-          }
-        },
-        { new: true }
-      );
-
-      if (!updateChat) {
-        const error = new Error("채팅 업데이트 실패") as IError;
-        error.statusCode = 500;
-        throw error;
-      }
-      return updateChat;
-    } else {
-      const error = new Error("사용자 없음") as IError;
-      error.statusCode = 404;
-      throw error;
-    }
   }
+
+  const joinDateUser = isChat.joinDates.find((x) => 
+    new mongoose.Types.ObjectId(x.userId).equals(userId)
+  );
+
+  if (!joinDateUser || joinDateUser.isRemoved) {
+    const error = new Error("사용자가 그룹에 가입되어 있지 않음") as IError;
+    error.statusCode = 403; // Forbidden
+    throw error;
+  }
+
+  // 접근 기록 업데이트
+  const updatedChat = await Chat.findOneAndUpdate(
+    { _id: chatId, "joinDates.userId": userId },
+    {
+      $set: { 
+        "joinDates.$.updatedDate": new Date(),
+      },
+    },
+    { new: true }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password")
+    .populate("latestMessage");
+
+  if (!updatedChat) {
+    const error = new Error("접근 기록 업데이트 실패") as IError;
+    error.statusCode = 500; // Internal Server Error
+    throw error;
+  }
+
+  return updatedChat;
+};
+
+
+
+// 채팅에 참가 여부 활성화하고,
+// 채팅방 입장, 나갔음 표시를 위해 존재.
+const recordUserOut = async (chatId: string, userId: string) => {
+  // 채팅방 존재 여부 확인
+  const isChat = await Chat.findOne({ _id: chatId, isGroupChat: true });
+
+  if (!isChat) {
+    const error = new Error("채팅 없음") as IError;
+    error.statusCode = 409; // Conflict
+    throw error;
+  }
+
+  // 사용자 가입 상태 확인
+  const joinDateUser = isChat.joinDates.find((x) =>
+    new mongoose.Types.ObjectId(x.userId).equals(userId)
+  );
+
+  if (!joinDateUser) {
+    const error = new Error("사용자가 그룹에 존재하지 않음") as IError;
+    error.statusCode = 404; // Not Found
+    throw error;
+  }
+
+  // 사용자 제거 (isRemoved: true로 설정)
+  const updatedChat = await Chat.findOneAndUpdate(
+    { _id: chatId, "joinDates.userId": userId },
+    {
+      $set: {
+        "joinDates.$.updatedDate": new Date(),
+        "joinDates.$.isRemoved": true,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updatedChat) {
+    const error = new Error("사용자 제거 실패") as IError;
+    error.statusCode = 500; // Internal Server Error
+    throw error;
+  }
+
+  // 성공적으로 업데이트된 채팅 데이터 반환
+  return updatedChat;
 };
 
 // 사용자 채팅 로직 임의 추가
@@ -616,15 +604,15 @@ const getNoticeInChat = async (chatId: string, userId: string, noticeId: string)
 export default {
   isRoomAuth,
   getChat,
-  getAccessChat,
-  fetchChats,
+  //getAccessChat,
+  //fetchChats,
   createGroupChat,
   updateGroupChat,
   addToGroup,
   removeFromGroup,
   deleteChat,
-  addJoinToGroup,
-  removeJoinToGroup,
+  recordUserJoin,
+  recordUserOut,
   leaveFromChat,
   updateChatName,
   createChatNotification,

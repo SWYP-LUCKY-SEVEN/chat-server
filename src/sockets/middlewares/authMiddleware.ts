@@ -1,10 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
-import { Request, Response, NextFunction} from "express";
 import User from "@models/userModel";
-import asyncHandler from "express-async-handler";
 import { toObjectHexString } from "@src/configs/toObjectHexString";
-import { IncomingMessage } from 'http';
 import IUserDTO from '@src/dtos/userDto';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -17,12 +14,12 @@ const decodeJWTMiddleware = (socket: Socket, next: (err?: any) => void) => {
         return next(new Error("no token"));
     }
     
-    if (!authToken.startsWith("Bearer ")){ 
-        console.log("invalid token");
-        return next(new Error("invalid token"));
+    let token = authToken;
+    
+    if (authToken.startsWith("Bearer ")){ 
+      token = authToken.substring(7);
     }
-        
-    const token = authToken.substring(7);
+    
 
     jwt.verify(token, JWT_SECRET, async (err: any, decoded: any) => {
         if (err) {
