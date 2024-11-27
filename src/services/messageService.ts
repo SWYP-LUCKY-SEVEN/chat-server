@@ -2,7 +2,7 @@ import generateToken from "@configs/generateToken";
 import { toObjectHexString } from "@src/configs/toObjectId";
 import Chat from "@src/models/chatModel";
 import Message from "@src/models/messageModel";
-import User from "@src/models/userModel";
+import Member from "@src/models/memberModel";
 import redisClient from "@src/redis/redis-client"
 
 interface IError extends Error {

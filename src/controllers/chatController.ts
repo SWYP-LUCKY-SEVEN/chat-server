@@ -12,10 +12,9 @@ interface IError extends Error {
 const getChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
-    if (reqUseId && studyId) {
+    const reqMemberId = req.member?._id;
+    if (reqMemberId && studyId) {
       const chatId = toObjectId(studyId);
-      const reqMemberId = toObjectId(reqUseId);
 
       const user = await chatService.getChat(chatId, reqMemberId);
       res.status(200).json(user);
@@ -29,7 +28,7 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
 // const getAccessChat = asyncHandler(async (req: Request, res: Response) => {
 //   try {
 //     const { memberId } = req.body;
-//     const reqUseId = req.user?._id;
+//     const reqUseId = req.member?._id;
 //     if (reqUseId) {
 //       const user = await chatService.getAccessChat(userId, reqUseId);
 //       res.status(200).json(user);
@@ -42,7 +41,7 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
 
 // const fetchChats = asyncHandler(async (req: Request, res: Response) => {
 //   try {
-//     const reqUseId = req.user?._id;
+//     const reqUseId = req.member?._id;
 //     console.log(reqUseId, "reqUseId")
 //     if (reqUseId) {
 //       const user = await chatService.fetchChats(reqUseId);
@@ -92,13 +91,11 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
     const { studyId, userId, type } = req.body;
 
     const chatId = toObjectId(studyId);
-    const reqUserId = req.user?._id; // JWT 정보 확인
+    const reqMemberId = req.member?._id; // JWT 정보 확인 미들웨어에서 이미 ObjectId화 됨.
     let memberId
-    let reqMemberId 
     if (type == "join") {
-      memberId = toObjectId(reqUserId);
+      memberId = reqMemberId;
     } else if (type == "accept") {
-      reqMemberId = toObjectId(reqUserId);
       memberId = toObjectId(userId);
     }
     if (chatId && memberId) {
@@ -115,11 +112,10 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
 const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId } = req.body;
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
 
     const chatId = toObjectId(studyId);
     const memberId = toObjectId(userId);
-    const reqMemberId = toObjectId(reqUserId);
     if (chatId && memberId) {
       const updatedGroupChat = await chatService.removeFromGroup(chatId, memberId, reqMemberId);
       res.status(200).json(updatedGroupChat);
@@ -134,7 +130,7 @@ const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
 const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -151,7 +147,7 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
 const recordUserJoin = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
 
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -168,7 +164,7 @@ const recordUserJoin = asyncHandler(async (req: Request, res: Response) => {
 const recordUserOut = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -209,7 +205,7 @@ const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
 const updateChatName = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, chatName } = req.body;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
 
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -232,7 +228,7 @@ const createChatNotification = asyncHandler(async (req: Request, res: Response) 
   try {
     const { studyId } = req.params;
     const { notiContent } = req.body;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -252,7 +248,7 @@ const editChatNotification = asyncHandler(async (req: Request, res: Response) =>
   try {
     const { studyId } = req.params;
     const { notiId, notiContent, isTop } = req.body;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -270,7 +266,7 @@ const editChatNotification = asyncHandler(async (req: Request, res: Response) =>
 const demoteChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -289,7 +285,7 @@ const removeChatNotification = asyncHandler(async (req: Request, res: Response) 
   try {
     const { studyId } = req.params;
     const { noticeId } = req.query;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -308,7 +304,7 @@ const removeChatNotification = asyncHandler(async (req: Request, res: Response) 
 const getAllNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);
@@ -327,7 +323,7 @@ const getNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
     const { noticeId } = req.query;
-    const reqUseId = req.user?._id;
+    const reqUseId = req.member?._id;
     
     const chatId = toObjectId(studyId);
     const reqMemberId = toObjectId(reqUseId);

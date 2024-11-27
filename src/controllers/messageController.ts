@@ -1,6 +1,6 @@
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import { messageService, chatService } from "@services/index";
-import { toObjectHexString } from "@src/configs/toObjectId";
+import { toObjectId} from "@src/configs/toObjectId";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 
@@ -16,7 +16,7 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
     
-    const chatObjectId = toObjectHexString(chatId);
+    const chatObjectId = toObjectId(chatId);
 
     const user = await messageService.getAllMessages(chatObjectId);
     res.status(201).json(user);
@@ -46,7 +46,7 @@ const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
 
 const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
     // 유저 검증 필요.
     const { chatId } = req.params;
     const { startIndex, range } = req.query;
@@ -56,7 +56,6 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const chatObjectId = toObjectHexString(chatId);
-    const reqUserObjectId = toObjectHexString(reqUserId);
 
     await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
@@ -81,7 +80,7 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
 
 const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
     // 유저 검증 필요.
 
     const { chatId } = req.params;
@@ -91,8 +90,7 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId);
-    const reqUserObjectId = toObjectHexString(reqUserId);
+    const chatObjectId = toObjectHexString(chatId); 
 
     await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
@@ -112,7 +110,7 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
 
 const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
     // 유저 검증 필요.
 
     const { chatId } = req.params;
@@ -122,8 +120,7 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId);
-    const reqUserObjectId = toObjectHexString(reqUserId);
+    const chatObjectId = toObjectHexString(chatId); 
 
     await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
@@ -143,9 +140,9 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
 
 const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
 
-    if (reqUserId) {
+    if (reqMemberId) {
       res.status(201).json(req.body);
     }
   } catch (error: any) {
@@ -157,16 +154,15 @@ const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
 const sendPicture = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqUserId = req.user?._id;
+    const reqMemberId = req.member?._id;
     const { content, chatId } = req.body;
 
-    const chatObjectId = toObjectHexString(chatId);
-    const reqUserObjectId = toObjectHexString(reqUserId);
+    const chatObjectId = toObjectHexString(chatId); 
 
     await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
-    if (reqUserId) {
-      const user = await messageService.sendMessage(content, chatObjectId, reqUserObjectId);
+    if (reqMemberId) {
+      const user = await messageService.sendMessage(content, chatObjectId, reqMemberId);
       res.status(201).json(user);
     }
   } catch (error: any) {

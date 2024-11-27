@@ -2,10 +2,10 @@ import "@configs/env";
 
 import { NextFunction, Request, Response } from "express";
 
-import User from "@models/userModel";
+import Member from "@src/models/memberModel";
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
-import { toObjectHexString } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/toObjectId";
 
 const protect = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -20,8 +20,8 @@ const protect = asyncHandler(
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
           sub: any; id?: string 
 };
-        const pk = decoded.sub
-        req.user = await User.findById(toObjectHexString(pk)) || undefined;
+        const userId = decoded.sub
+        req.member = await Member.findById(toObjectId(userId)) || undefined;
         next();
       } catch (error) {
         res.status(401);

@@ -1,11 +1,11 @@
 import { Socket } from 'socket.io';
-import IUserDTO from '@src/dtos/userDto';
+import IUserDTO from '@src/dtos/memberDto';
 import { toObjectHexString } from '@src/configs/toObjectId';
 import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
 export const handleSetupEvents = (socket: ICustomSocket): void => {
     socket.on("setup", () => {  // 채팅방 입장시,
-        socket.join(socket.user._id.toString());
+        socket.join(socket.member._id.toString());
         socket.emit("connected");
     });
     

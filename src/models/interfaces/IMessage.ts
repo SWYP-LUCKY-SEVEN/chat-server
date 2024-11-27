@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
 import Chat from "./IChat";
-import User from "./IUser";
+import Member from "./IMember";
 
 export interface IMessage {
   index: Number;
@@ -8,7 +8,7 @@ export interface IMessage {
   isPic: boolean;
   content?: string;
   chat: Chat;
-  readBy: User;
+  readBy: Member;
 }
 
 export default interface IMessageDocument extends IMessage, Document {

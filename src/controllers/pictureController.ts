@@ -53,9 +53,9 @@ const postPicture = asyncHandler(async (req: Request, res: Response) => {
     try {
         const { url } = req.body;
         const { chatId } = req.params;
-        const reqUserId = req.user?._id;
+        const reqMemberId = req.member?._id;
         const objectChatId = toObjectHexString(chatId);
-        const result = await pictureService.postPicture(url, objectChatId, reqUserId);
+        const result = await pictureService.postPicture(url, objectChatId, reqMemberId);
         res.status(201).json(result);
       } catch (error: any) {
         errorLoggerMiddleware(error as IError, req, res);

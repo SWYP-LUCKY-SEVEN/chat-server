@@ -1,6 +1,6 @@
 import chatService from "./chatService";
 import messageService from "./messageService";
 import pictureService from "./pictureService";
-import userService from "./userService";
+import memberService from "./memberService";
 
-export { userService, chatService, messageService, pictureService };
+export { memberService, chatService, messageService, pictureService };

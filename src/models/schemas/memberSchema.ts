@@ -1,9 +1,9 @@
 import { Schema } from "mongoose";
 
-import IUserDocument from "@src/models/interfaces/IUser";
+import IMemberDocument from "@src/models/interfaces/IMember";
 import bcrypt from "bcrypt";
 
-const UserSchema = new Schema<IUserDocument>(
+const MemberSchema = new Schema<IMemberDocument>(
   {
     nickname: { type: String, required: true },
     pic: {
@@ -20,8 +20,8 @@ const UserSchema = new Schema<IUserDocument>(
   { timestamps: true }
 );
 
-UserSchema.methods.matchPassword = async function (enteredPassword: string) {
+MemberSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default UserSchema
+export default MemberSchema

@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 
-import User from "@src/models/userModel";
+import Member from "@src/models/memberModel";
 import asyncHandler from "express-async-handler";
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import mongoose from "mongoose";
 import redisClient from "@src/redis/redis-client";
-import { userService } from "@services/index";
+import { memberService } from "@services/index";
 
 const { ObjectId } = mongoose.Types;
 
@@ -21,13 +21,13 @@ function toObjectHexString(number: any): string {
   return hexString.padStart(24, "0").toString();
 }
 
-const createUser = asyncHandler(async (req: Request, res: Response) => {
+const createMember = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { pk, nickname, pic } = req.body;
     const objectId = toObjectHexString(pk) as string;
     const _id = new ObjectId(objectId);
 
-    const existUser = await User.findOne({_id});
+    const existUser = await Member.findOne({_id});
 
     if (existUser) {
       const error = new Error("이미 존재하는 유저") as IError;
@@ -35,16 +35,16 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
       throw error;
     }
 
-    const user = await User.create({
+    const member = await Member.create({
       _id,
       nickname,
       pic,
     });
 
-    console.log(user)
+    console.log(member)
 
-    if (user) {
-      res.status(201).json(user);
+    if (member) {
+      res.status(201).json(member);
     } else {
       const error = new Error("유저 생성에 실패") as IError;
       error.statusCode = 500;
@@ -57,7 +57,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const deleteUser = asyncHandler(async (req: Request, res: Response) => {
+const deleteMember = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -68,9 +68,9 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
       throw error;
     }
 
-    const user = await User.findByIdAndDelete(objectId);
+    const member = await Member.findByIdAndDelete(objectId);
 
-    if (!user) {
+    if (!member) {
       const error = new Error("유저를 찾을 수 없습니다") as IError;
       error.statusCode = 404;
       throw error;
@@ -83,7 +83,7 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const updateUser = asyncHandler(async (req: Request, res: Response) => {
+const updateMember = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { nickname, pic } = req.body;
@@ -96,40 +96,40 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
       throw error;
     }
 
-    const user = await User.findByIdAndUpdate( objectId,
+    const member = await Member.findByIdAndUpdate( objectId,
       { nickname, pic },
       { new: true, runValidators: true }
     );
 
-    if (!user) {
-      const error = new Error("유저를 찾을 수 없습니다") as IError;
+    if (!member) {
+      const error = new Error("멤버를 찾을 수 없습니다") as IError;
       error.statusCode = 404;
       throw error;
     }
 
-    res.status(200).json(user);
+    res.status(200).json(member);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
   }
 });
 
-const signUpUser = asyncHandler(async (req: Request, res: Response) => {
+const signUpMember = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { nickname, email, password, pic } = req.body;
-    const user = await userService.signUpUser(nickname, email, password, pic);
-    res.status(201).json(user);
+    const member = await memberService.signUpMember(nickname, email, password, pic);
+    res.status(201).json(member);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
   }
 });
 
-const signInUser = asyncHandler(async (req: Request, res: Response) => {
+const signInMember = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { nickname } = req.body;
-    const user = await userService.signInUser(nickname);
-    res.status(200).json(user);
+    const member = await memberService.signInMember(nickname);
+    res.status(200).json(member);
   } catch (error: any) {
     console.log(error)
     errorLoggerMiddleware(error as IError, req, res);
@@ -137,11 +137,11 @@ const signInUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const getUsers = asyncHandler(async (req: Request, res: Response) => {
+const getMembers = asyncHandler(async (req: Request, res: Response) => {
   try {
     const keyword = req.query.search;
-    const memberId = req.user?._id;
-    const users = await userService.getUsers(keyword, memberId);
+    const memberId = req.member?._id;
+    const users = await memberService.getMembers(keyword, memberId);
     res.status(200).json(users);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
@@ -149,10 +149,10 @@ const getUsers = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 export default {
-  createUser,
-  deleteUser,
-  updateUser,
-  signUpUser,
-  signInUser,
-  getUsers,
+  createMember,
+  deleteMember,
+  updateMember,
+  signUpMember,
+  signInMember,
+  getMembers,
 };

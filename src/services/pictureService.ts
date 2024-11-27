@@ -1,10 +1,12 @@
 import Chat from "@src/models/chatModel";
 import Message from "@src/models/messageModel";
 import Picture from "@src/models/pictureModel"
-import User from "@src/models/userModel";
+import Member from "@src/models/memberModel";
 import generateToken from "@configs/generateToken";
 import moment from 'moment'
 import mongoose from "mongoose";
+
+type ObjectId = mongoose.Types.ObjectId;
 
 interface IError extends Error {
     statusCode: number;
@@ -28,7 +30,7 @@ const getPictureData = async(picId: string) => {
     }
   }
 }
-const getChatGallery = async(chatId: string) => {
+const getChatGallery = async(chatId: ObjectId) => {
     if (!chatId) {
         const error = new Error("picId 확인") as IError;
         error.statusCode = 400;
@@ -39,9 +41,9 @@ const getChatGallery = async(chatId: string) => {
             { $match: { chat: ObjectchatId } },
             {
                 $lookup: {  //Join
-                    from: 'users', // 조인할 컬렉션 이름 (User => users, Chat => chats)
+                    from: 'users', // 조인할 컬렉션 이름 (Member => users, Chat => chats)
                     localField: 'uploadedBy', // Picture 컬렉션의 필드
-                    foreignField: '_id', // User 컬렉션의 필드
+                    foreignField: '_id', // Member 컬렉션의 필드
                     as: 'uploadedByUser' // 결과 배열 필드 이름 (lookup의 결과는 항상 배열)
                 }
             },
@@ -66,7 +68,7 @@ const getChatGallery = async(chatId: string) => {
         return pictureByDay;
     }
 }
-const getChatSimpleGallery = async(chatId: string, limit: number) => {
+const getChatSimpleGallery = async(chatId: ObjectId, limit: number) => {
     if (!chatId) {
         const error = new Error("picId 확인") as IError;
         error.statusCode = 400;
@@ -86,7 +88,7 @@ const getChatSimpleGallery = async(chatId: string, limit: number) => {
       }
 }
 
-const postPicture = async(url: string, chatId: string, reqUserId: string) => {
+const postPicture = async(url: string, chatId: ObjectId, reqMemberId: ObjectId) => {
     if (!url || !chatId) {
         const error = new Error("유효하지 않은 요청") as IError;
         error.statusCode = 400;
@@ -95,7 +97,7 @@ const postPicture = async(url: string, chatId: string, reqUserId: string) => {
       
     const newPicture = {
         chat: chatId,
-        uploadedBy: reqUserId,
+        uploadedBy: reqMemberId,
         url,
     };
     console.log(newPicture)
@@ -104,7 +106,7 @@ const postPicture = async(url: string, chatId: string, reqUserId: string) => {
         await picture.populate("uploadedBy", "nickname pic")
     ).populate("chat");
     
-    const result = await User.populate(picture, {
+    const result = await Member.populate(picture, {
         path: "chat.users",
         select: "nickname pic email",
     });

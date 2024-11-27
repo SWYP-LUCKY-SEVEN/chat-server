@@ -7,13 +7,13 @@ const ChatSchema = new Schema<IChatDocument>(
   {
     chatName: { type: String, trim: true },
     isGroupChat: { type: Boolean, default: false },
-    users: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    users: [{ type: Schema.Types.ObjectId, ref: "Member" }],
     latestMessage: {
       type: Schema.Types.ObjectId,
       ref: "Message",
     },
     messageSeq: { type: Number, default: 0 },
-    groupAdmin: { type: Schema.Types.ObjectId, ref: "User" },
+    groupAdmin: { type: Schema.Types.ObjectId, ref: "Member" },
     isDeleted: {
       type: Schema.Types.Boolean,
       index: true,

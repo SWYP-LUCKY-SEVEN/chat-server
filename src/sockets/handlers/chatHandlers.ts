@@ -8,19 +8,18 @@ import { toObjectId } from '@src/configs/toObjectId';
 export const handleChatEvents = (io: SocketIOServer, socket: ICustomSocket): void => {
     socket.on("join chat", (studyId) => {  //chat id로 설정된 room에 가입
 
-        const reqUserId = socket.user._id;
+        const reqMemberId = socket.member._id;
+        const chatId = toObjectId(studyId); 
         // 검증
-        const chatId = toObjectId(studyId);
-        const reqMemberid = toObjectId(reqUserId);
 
-        chatService.isRoomAuth(chatId, reqMemberid)
+        chatService.isRoomAuth(chatId, reqMemberId);
 
         const roomId = chatId.toHexString();
         // 참가 시간 emit?
         socket.join(roomId);
         socket.roomId = roomId;
 
-        console.log(socket.user);
+        console.log(socket.member);
 
 
         if(roomId) socket.broadcast.to(roomId).emit("user joined", roomId);     
@@ -36,7 +35,7 @@ export const handleChatEvents = (io: SocketIOServer, socket: ICustomSocket): voi
     socket.on("stop typing", () => socket.broadcast.to(socket.roomId).emit("stop typing"));
     
     socket.on("new message", async(newMessageReceived) => {
-        const user = socket.user;
+        const user = socket.member;
         const chatId = newMessageReceived.chat._id;
         if (!chatId) return console.log("chatId is not defined");
         const result = await messageService.sendMessage(newMessageReceived.content, chatId, user._id.toString());

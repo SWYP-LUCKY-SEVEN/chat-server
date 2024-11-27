@@ -1,10 +1,11 @@
 import { Document } from "mongoose";
-interface IUser {
+
+interface IMember {
   nickname?: string;
   pic: string;
   isAdmin: boolean;
 }
 
-export default interface IUserDocument extends IUser, Document {
+export default interface IMemberDocument extends IMember, Document {
   matchPassword: (enteredPassword: string) => Promise<boolean>;
 }

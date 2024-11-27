@@ -1,7 +1,7 @@
 import { userService } from "@services/index";
 import { toObjectId } from "@src/configs/toObjectId";
 import Chat from "@src/models/chatModel";
-import User from "@src/models/userModel";
+import Member from "@src/models/memberModel";
 import { randomUUID } from "crypto";
 import mongoose from 'mongoose';
 
@@ -54,7 +54,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
     return []
   }
 
-  const resultChat = await User.populate(isChat, {
+  const resultChat = await Member.populate(isChat, {
     path: "latestMessages.sender",
     select: "name pic email",
   });
@@ -80,7 +80,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 //     .populate("users", "-password")
 //     .populate("latestMessage");
 
-//   const resultChat = await User.populate(isChat, {
+//   const resultChat = await Member.populate(isChat, {
 //     path: "latestMessage.sender",
 //     select: "name pic email",
 //   });
@@ -124,7 +124,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 //     .populate("groupAdmin", "-password")
 //     .populate("latestMessage");
 
-//   const resultChat = await User.populate(chats, {
+//   const resultChat = await Member.populate(chats, {
 //     path: "latestMessage.sender",
 //     select: "nickname pic email",
 //   });
