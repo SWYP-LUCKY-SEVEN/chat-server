@@ -140,8 +140,8 @@ const signInUser = asyncHandler(async (req: Request, res: Response) => {
 const getUsers = asyncHandler(async (req: Request, res: Response) => {
   try {
     const keyword = req.query.search;
-    const userId = req.user?._id;
-    const users = await userService.getUsers(keyword, userId);
+    const memberId = req.user?._id;
+    const users = await userService.getUsers(keyword, memberId);
     res.status(200).json(users);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);

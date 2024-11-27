@@ -3,16 +3,8 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { chatService } from "@services/index";
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
-import mongoose from "mongoose";
+import { toObjectId } from "@src/configs/toObjectId";
 
-const { ObjectId } = mongoose.Types;
-
-function toObjectHexString(number: any): string {
-  // 숫자를 16진수 문자열로 변환
-  const hexString = number.toString(16);
-  // 16진수 문자열을 24자리의 문자열로 패딩하여 반환
-  return hexString.padStart(24, "0").toString();
-}
 interface IError extends Error {
   statusCode: number;
 }
@@ -22,7 +14,10 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
     const { studyId } = req.params;
     const reqUseId = req.user?._id;
     if (reqUseId && studyId) {
-      const user = await chatService.getChat(studyId, reqUseId);
+      const chatId = toObjectId(studyId);
+      const reqMemberId = toObjectId(reqUseId);
+
+      const user = await chatService.getChat(chatId, reqMemberId);
       res.status(200).json(user);
     }
   } catch (error: any) {
@@ -33,7 +28,7 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
 
 // const getAccessChat = asyncHandler(async (req: Request, res: Response) => {
 //   try {
-//     const { userId } = req.body;
+//     const { memberId } = req.body;
 //     const reqUseId = req.user?._id;
 //     if (reqUseId) {
 //       const user = await chatService.getAccessChat(userId, reqUseId);
@@ -61,13 +56,11 @@ const getChat = asyncHandler(async (req: Request, res: Response) => {
 
 const createGroupChat = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { pk, name, studyId } = req.body;
-    const objectChatId = toObjectHexString(studyId) as string;
-    const objectUserId = toObjectHexString(pk) as string;
-    const chatId = new ObjectId(objectChatId);
-    const userId = new ObjectId(objectUserId);
+    const { userId, name, studyId } = req.body;
+    const chatId = toObjectId(studyId);
+    const memberId = toObjectId(userId);
 
-    const groupChat = await chatService.createGroupChat(userId, chatId, name);
+    const groupChat = await chatService.createGroupChat(memberId, chatId, name);
     res.status(200).json(groupChat);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
@@ -77,7 +70,11 @@ const createGroupChat = asyncHandler(async (req: Request, res: Response) => {
 
 const updateGroupChat = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId, chatName } = req.body;
+    const { studyId, chatName } = req.body;
+
+    
+    const chatId = toObjectId(studyId);
+
     const updatedGroupChat = await chatService.updateGroupChat(
       chatId,
       chatName
@@ -94,18 +91,18 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId, type } = req.body;
 
-    const objectChatId = toObjectHexString(studyId) as string;
-    const reqUseId = req.user?._id; // JWT 정보 확인
-    let objectUserId
-    let reqObjectUserId 
+    const chatId = toObjectId(studyId);
+    const reqUserId = req.user?._id; // JWT 정보 확인
+    let memberId
+    let reqMemberId 
     if (type == "join") {
-      objectUserId = toObjectHexString(reqUseId) as string;
+      memberId = toObjectId(reqUserId);
     } else if (type == "accept") {
-      reqObjectUserId = toObjectHexString(reqUseId) as string;
-      objectUserId = toObjectHexString(userId) as string;
+      reqMemberId = toObjectId(reqUserId);
+      memberId = toObjectId(userId);
     }
-    if (objectChatId && objectUserId) {
-      const updatedGroupChat = await chatService.addToGroup(objectChatId, objectUserId as string, reqObjectUserId);
+    if (chatId && memberId) {
+      const updatedGroupChat = await chatService.addToGroup(chatId, memberId, reqMemberId);
       res.status(200).json(updatedGroupChat);
     }
   } catch (error: any) {
@@ -118,12 +115,13 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
 const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId } = req.body;
-    const objectChatId = toObjectHexString(studyId) as string;
-    const reqUseId = req.user?._id;
-    const objectReqUserId = toObjectHexString(reqUseId) as string;
-    const objectUserId = toObjectHexString(userId) as string;
-    if (objectChatId && objectUserId) {
-      const updatedGroupChat = await chatService.removeFromGroup(objectChatId, objectReqUserId, objectUserId);
+    const reqUserId = req.user?._id;
+
+    const chatId = toObjectId(studyId);
+    const memberId = toObjectId(userId);
+    const reqMemberId = toObjectId(reqUserId);
+    if (chatId && memberId) {
+      const updatedGroupChat = await chatService.removeFromGroup(chatId, memberId, reqMemberId);
       res.status(200).json(updatedGroupChat);
     }
   } catch (error: any) {
@@ -136,10 +134,12 @@ const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
 const deleteChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const deleteChat = await chatService.deleteChat(objectChatId, reqUseId);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const deleteChat = await chatService.deleteChat(chatId, reqMemberId);
       res.status(200).json(deleteChat);
     }
   } catch (error: any) {
@@ -151,10 +151,12 @@ const deleteChat = asyncHandler(async (req: Request, res: Response) => {
 const recordUserJoin = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const deleteChat = await chatService.recordUserJoin(objectChatId, reqUseId);
+
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const deleteChat = await chatService.recordUserJoin(chatId, reqMemberId);
       res.status(200).json(deleteChat);
     }
   } catch (error: any) {
@@ -166,10 +168,12 @@ const recordUserJoin = asyncHandler(async (req: Request, res: Response) => {
 const recordUserOut = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const deleteChat = await chatService.recordUserOut(objectChatId, reqUseId);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const deleteChat = await chatService.recordUserOut(chatId, reqMemberId);
       res.status(200).json(deleteChat);
     }
   } catch (error: any) {
@@ -186,12 +190,13 @@ const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const { studyId } = req.body;
-    const objectChatId = toObjectHexString(studyId) as string;
-    const objectUserId = toObjectHexString(userId) as string;
-    if (objectChatId && objectUserId) {
+    
+    const chatId = toObjectId(studyId);
+    const memberId = toObjectId(userId);
+    if (chatId && memberId) {
       const updatedGroupChat = await chatService.leaveFromChat(
-        objectChatId, 
-        objectUserId
+        chatId, 
+        memberId
       );
       res.status(200).json(updatedGroupChat);
     }
@@ -203,13 +208,16 @@ const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
 // 채팅방 이름 업데이트
 const updateChatName = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId, chatName } = req.body;
+    const { studyId, chatName } = req.body;
     const reqUseId = req.user?._id;
-    const objectChatId = toObjectHexString(chatId) as string;
+
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+
     const updatedGroupChat = await chatService.updateChatName(
-      objectChatId,
+      chatId,
       chatName,
-      reqUseId
+      reqMemberId
     );
     res.status(200).json(updatedGroupChat);
   } catch (error: any) {
@@ -224,10 +232,13 @@ const createChatNotification = asyncHandler(async (req: Request, res: Response) 
   try {
     const { studyId } = req.params;
     const { notiContent } = req.body;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const createNotiChat = await chatService.createChatNotification(objectChatId, reqUseId, notiContent);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+
+    if (reqMemberId && chatId) {
+      const createNotiChat = await chatService.createChatNotification(chatId, reqMemberId, notiContent);
       res.status(201).json(createNotiChat);
     }
   } catch (error: any) {
@@ -241,10 +252,12 @@ const editChatNotification = asyncHandler(async (req: Request, res: Response) =>
   try {
     const { studyId } = req.params;
     const { notiId, notiContent, isTop } = req.body;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const editNotiChat = await chatService.editChatNotification(objectChatId, reqUseId, notiId, notiContent, isTop);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const editNotiChat = await chatService.editChatNotification(chatId, reqMemberId, notiId, notiContent, isTop);
       res.status(200).json(editNotiChat);
     }
   } catch (error: any) {
@@ -257,10 +270,12 @@ const editChatNotification = asyncHandler(async (req: Request, res: Response) =>
 const demoteChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const demoteNotiChat = await chatService.demoteChatNotification(objectChatId, reqUseId);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const demoteNotiChat = await chatService.demoteChatNotification(chatId, reqMemberId);
       res.status(200).json(demoteNotiChat);
     }
   } catch (error: any) {
@@ -273,11 +288,14 @@ const demoteChatNotification = asyncHandler(async (req: Request, res: Response) 
 const removeChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const { notiId } = req.query;
-    const objectChatId = toObjectHexString(studyId) as string;
+    const { noticeId } = req.query;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId && notiId) {
-      const removeNotiChat = await chatService.removeChatNotification(objectChatId, reqUseId, notiId as string);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    const notiId = toObjectId(noticeId);
+    if (reqMemberId && chatId && notiId) {
+      const removeNotiChat = await chatService.removeChatNotification(chatId, reqMemberId, notiId);
       res.status(200).json(removeNotiChat);
     }
   } catch (error: any) {
@@ -290,10 +308,12 @@ const removeChatNotification = asyncHandler(async (req: Request, res: Response) 
 const getAllNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const objectChatId = toObjectHexString(studyId) as string;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const notiList = await chatService.getAllNoticeInChat(objectChatId, reqUseId);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    if (reqMemberId && chatId) {
+      const notiList = await chatService.getAllNoticeInChat(chatId, reqMemberId);
       res.status(200).json(notiList);
     }
   } catch (error: any) {
@@ -306,11 +326,14 @@ const getAllNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
 const getNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId } = req.params;
-    const { notiId } = req.query;
-    const objectChatId = toObjectHexString(studyId) as string;
+    const { noticeId } = req.query;
     const reqUseId = req.user?._id;
-    if (reqUseId && objectChatId) {
-      const notice = await chatService.getNoticeInChat(objectChatId, reqUseId, notiId as string);
+    
+    const chatId = toObjectId(studyId);
+    const reqMemberId = toObjectId(reqUseId);
+    const notiId = toObjectId(noticeId);
+    if (reqMemberId && chatId) {
+      const notice = await chatService.getNoticeInChat(chatId, reqMemberId, notiId);
       res.status(200).json(notice);
     }
   } catch (error: any) {

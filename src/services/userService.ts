@@ -63,7 +63,7 @@ const signInUser = async (nickname: string) => {
     throw error;
   }
 };
-const getUsers = async (keyword: any, userId: string) => {
+const getUsers = async (keyword: any, memberId: string) => {
   let filter = {};
   keyword
     ? (filter = {
@@ -73,7 +73,7 @@ const getUsers = async (keyword: any, userId: string) => {
         ],
       })
     : (filter = {});
-  const users = await User.find(filter).find({ _id: { $ne: userId } });
+  const users = await User.find(filter).find({ _id: { $ne: memberId } });
   if (users) {
     return users;
   } else {
@@ -83,7 +83,7 @@ const getUsers = async (keyword: any, userId: string) => {
   }
 };
 const getUser = async (userId: any) => {
-  const users = await User.findOne({_id: userId});
+  const users = await User.findOne({_id: memberId});
   if (users) {
     return users;
   } else {

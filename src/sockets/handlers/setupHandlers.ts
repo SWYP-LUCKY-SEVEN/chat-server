@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
 import IUserDTO from '@src/dtos/userDto';
-import { toObjectHexString } from '@src/configs/toObjectHexString';
+import { toObjectHexString } from '@src/configs/toObjectId';
 import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
 export const handleSetupEvents = (socket: ICustomSocket): void => {

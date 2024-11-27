@@ -1,5 +1,6 @@
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import { messageService, chatService } from "@services/index";
+import { toObjectHexString } from "@src/configs/toObjectId";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 
@@ -14,8 +15,10 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
     if(!Number(chatId)) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+    
+    const chatObjectId = toObjectHexString(chatId);
 
-    const user = await messageService.getAllMessages(chatId);
+    const user = await messageService.getAllMessages(chatObjectId);
     res.status(201).json(user);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
@@ -31,7 +34,9 @@ const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const user = await messageService.getRecentMessages(chatId, 0, 30);
+    const chatObjectId = toObjectHexString(chatId);
+
+    const user = await messageService.getRecentMessages(chatObjectId, 0, 30);
     res.status(201).json(user);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
@@ -50,7 +55,10 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    await chatService.isRoomAuth(chatId, reqUserId);
+    const chatObjectId = toObjectHexString(chatId);
+    const reqUserObjectId = toObjectHexString(reqUserId);
+
+    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
     const startIndexNum = parseInt(startIndex as string, 10);
 
@@ -83,13 +91,16 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    await chatService.isRoomAuth(chatId, reqUserId);
+    const chatObjectId = toObjectHexString(chatId);
+    const reqUserObjectId = toObjectHexString(reqUserId);
+
+    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
     const startIndexNum = parseInt(startIndex as string, 10);
 
-    const indexList = await messageService.findMessagesByContent(chatId, findText as string);
+    const indexList = await messageService.findMessagesByContent(chatObjectId, findText as string);
 
-    const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, indexList.at(0)!.valueOf())
+    const messages = await messageService.findMessagesBetweenIndex(chatObjectId, startIndexNum, indexList.at(0)!.valueOf())
 
     res.status(200).json({ indexList, messages });
 
@@ -111,12 +122,15 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    await chatService.isRoomAuth(chatId, reqUserId);
+    const chatObjectId = toObjectHexString(chatId);
+    const reqUserObjectId = toObjectHexString(reqUserId);
+
+    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
     const findIndexNum = parseInt(findIndex as string, 10);
     const startIndexNum = parseInt(startIndex as string, 10);
 
-    const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, findIndexNum);
+    const messages = await messageService.findMessagesBetweenIndex(chatObjectId, startIndexNum, findIndexNum);
 
     res.status(200).json(messages);
 
@@ -146,10 +160,13 @@ const sendPicture = asyncHandler(async (req: Request, res: Response) => {
     const reqUserId = req.user?._id;
     const { content, chatId } = req.body;
 
-    chatService.isRoomAuth(chatId, reqUserId);
+    const chatObjectId = toObjectHexString(chatId);
+    const reqUserObjectId = toObjectHexString(reqUserId);
+
+    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
 
     if (reqUserId) {
-      const user = await messageService.sendMessage(content, chatId, reqUserId);
+      const user = await messageService.sendMessage(content, chatObjectId, reqUserObjectId);
       res.status(201).json(user);
     }
   } catch (error: any) {

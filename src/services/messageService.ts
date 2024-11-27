@@ -1,5 +1,5 @@
 import generateToken from "@configs/generateToken";
-import { toObjectHexString } from "@src/configs/toObjectHexString";
+import { toObjectHexString } from "@src/configs/toObjectId";
 import Chat from "@src/models/chatModel";
 import Message from "@src/models/messageModel";
 import User from "@src/models/userModel";
@@ -12,14 +12,12 @@ interface IError extends Error {
 const TTL_SECONDS = 3 * 24 * 60 * 60; // 3일
 const EXPIRY_TIME_THRESHOLD = 3600 * 1000; // 1시간 (밀리초 단위)
 
-const getAllMessages = async (chatId: string) => {
-  if (!chatId) {
+const getAllMessages = async (chatObjectId: string) => {
+  if (!chatObjectId) {
     const error = new Error("chatId 확인") as IError;
     error.statusCode = 400;
     throw error;
   } else {
-    const chatObjectId = toObjectHexString(chatId);
-    
     const messages = await Message.find({ chat: chatObjectId })
       .populate("sender", "nickname pic email");
 
@@ -39,14 +37,12 @@ const getAllMessages = async (chatId: string) => {
 };
 
 // 최신 메세지 redis 사용 안할 듯 함.
-const getRecentMessages = async (chatId: string, page:number, limit: number) => {
-  if (!chatId) {
+const getRecentMessages = async (chatObjectId: string, page:number, limit: number) => {
+  if (!chatObjectId) {
     const error = new Error("chatId 확인") as IError;
     error.statusCode = 400;
     throw error;
   }
-  const chatObjectId = toObjectHexString(chatId);
-
   let messages = await Message.find({ chat: chatObjectId })
     .sort({ index : -1 }) // index == 메세지 순서
     .skip(page*limit)
@@ -69,16 +65,14 @@ const getRecentMessages = async (chatId: string, page:number, limit: number) => 
 
 const sendMessage = async (
   content: string,
-  chatId: string,
-  reqUserId: string
+  chatObjectId: string,
+  reqUserObjectId: string
 ) => {
-  if (!content || !chatId) {
+  if (!content || !chatObjectId) {
     const error = new Error("유효하지 않은 요청") as IError;
     error.statusCode = 400;
     throw error;
   }
-  const chatObjectId = toObjectHexString(chatId);
-
   // seq는 실제로 메세지가 생성되지 않았더라도, 증가 해도 됨.
   const chatRoom = await Chat.findByIdAndUpdate(
     chatObjectId,
@@ -98,7 +92,7 @@ const sendMessage = async (
 
   const newMessage = {
     index: chatRoom.messageSeq,
-    sender: reqUserId,
+    sender: reqUserObjectId,
     content,
     chat: chatObjectId,
   };
@@ -117,15 +111,14 @@ const sendMessage = async (
 };
 
 const findMessagesByContent  = async (
-  chatId: string,
+  chatObjectId: string,
   findText: string
 ) => {
-  if (!findText || !chatId) {
+  if (!findText || !chatObjectId) {
     const error = new Error("유효하지 않은 요청") as IError;
     error.statusCode = 400; 
     throw error;
   }
-  const chatObjectId = toObjectHexString(chatId);
 
   // 검색된 채팅 index List 추출
   const messageIndexes = await Message.find(
@@ -149,11 +142,11 @@ const findMessagesByContent  = async (
 
 
 const findMessagesBetweenIndex = async (
-  chatId : string,
+  chatObjectId : string,
   startIndex : number,
   targetIndex : number
 ) => {
-  if (!chatId || targetIndex == null) {
+  if (!chatObjectId || targetIndex == null) {
     const error = new Error("유효하지 않은 요청") as IError;
     error.statusCode = 400;
     throw error;
@@ -163,7 +156,6 @@ const findMessagesBetweenIndex = async (
     error.statusCode = 400;
     throw error;
   }
-  const chatObjectId = toObjectHexString(chatId);
 
   // TODO 검증 필요
 
@@ -180,19 +172,17 @@ const findMessagesBetweenIndex = async (
 
 const sendPicture = async (
   content: string,
-  chatId: string,
-  reqUserId: string
+  chatObjectId: string,
+  reqUserObjectId: string
 ) => {
-  if (!content || !chatId) {
+  if (!content || !chatObjectId) {
     const error = new Error("유효하지 않은 요청") as IError;
     error.statusCode = 400;
     throw error;
   }
 
-  const chatObjectId = toObjectHexString(chatId);
-
   const newMessage = {
-    sender: reqUserId,
+    sender: reqUserObjectId,
     isPic:true,
     content,
     chat: chatObjectId,
