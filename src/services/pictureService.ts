@@ -1,7 +1,7 @@
 import Chat from "@src/models/chatModel";
 import Message from "@src/models/messageModel";
 import Picture from "@src/models/pictureModel"
-import Member from "@src/models/memberModel";
+import User from "@src/models/userModel";
 import generateToken from "@configs/generateToken";
 import moment from 'moment'
 import mongoose from "mongoose";
@@ -12,7 +12,7 @@ interface IError extends Error {
     statusCode: number;
 }
 
-const getPictureData = async(picId: string) => {
+const getPictureData = async(picId: ObjectId) => {
   if (!picId) {
     const error = new Error("picId 확인") as IError;
     error.statusCode = 400;
@@ -41,9 +41,9 @@ const getChatGallery = async(chatId: ObjectId) => {
             { $match: { chat: ObjectchatId } },
             {
                 $lookup: {  //Join
-                    from: 'users', // 조인할 컬렉션 이름 (Member => users, Chat => chats)
+                    from: 'users', // 조인할 컬렉션 이름 (User => users, Chat => chats)
                     localField: 'uploadedBy', // Picture 컬렉션의 필드
-                    foreignField: '_id', // Member 컬렉션의 필드
+                    foreignField: '_id', // User 컬렉션의 필드
                     as: 'uploadedByUser' // 결과 배열 필드 이름 (lookup의 결과는 항상 배열)
                 }
             },
@@ -88,7 +88,7 @@ const getChatSimpleGallery = async(chatId: ObjectId, limit: number) => {
       }
 }
 
-const postPicture = async(url: string, chatId: ObjectId, reqMemberId: ObjectId) => {
+const postPicture = async(url: string, chatId: ObjectId, reqUserId: ObjectId) => {
     if (!url || !chatId) {
         const error = new Error("유효하지 않은 요청") as IError;
         error.statusCode = 400;
@@ -97,7 +97,7 @@ const postPicture = async(url: string, chatId: ObjectId, reqMemberId: ObjectId) 
       
     const newPicture = {
         chat: chatId,
-        uploadedBy: reqMemberId,
+        uploadedBy: reqUserId,
         url,
     };
     console.log(newPicture)
@@ -106,7 +106,7 @@ const postPicture = async(url: string, chatId: ObjectId, reqMemberId: ObjectId) 
         await picture.populate("uploadedBy", "nickname pic")
     ).populate("chat");
     
-    const result = await Member.populate(picture, {
+    const result = await User.populate(picture, {
         path: "chat.users",
         select: "nickname pic email",
     });

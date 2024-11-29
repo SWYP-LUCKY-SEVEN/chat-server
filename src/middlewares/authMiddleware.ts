@@ -2,7 +2,7 @@ import "@configs/env";
 
 import { NextFunction, Request, Response } from "express";
 
-import Member from "@src/models/memberModel";
+import User from "@src/models/userModel";
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 import { toObjectId } from "@src/configs/toObjectId";
@@ -21,7 +21,7 @@ const protect = asyncHandler(
           sub: any; id?: string 
 };
         const userId = decoded.sub
-        req.member = await Member.findById(toObjectId(userId)) || undefined;
+        req.user = await User.findById(toObjectId(userId)) || undefined;
         next();
       } catch (error) {
         res.status(401);

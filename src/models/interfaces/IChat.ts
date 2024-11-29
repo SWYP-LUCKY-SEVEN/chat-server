@@ -1,6 +1,6 @@
 import { Document, Types } from "mongoose";
 import { IMessage } from "./IMessage";
-import Member from "./IMember";
+import User from "./IUser";
 import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
 export interface INoti { 
@@ -10,7 +10,7 @@ export interface INoti {
 }
 
 export interface IJoinDates {
-  memberId: string,
+  userId: string,
   joinedDate: Date,
   updatedDate: Date,
   isRemoved: boolean,
@@ -19,10 +19,10 @@ export interface IJoinDates {
 interface IChat {
   chatName: string;
   isGroupChat: boolean;
-  users: Member[];
+  users: User[];
   latestMessage: IMessage;
   messageSeq: number;
-  groupAdmin: Member;
+  groupAdmin: User;
   isDeleted: boolean
   noti: INoti[]
   topNoti: number | null;

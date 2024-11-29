@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
-import IMemberDTO from '@src/dtos/memberDto';
+import IUserDTO from '@src/dtos/userDto';
 
 export interface ICustomSocket extends Socket {
-  member: IMemberDTO;
+  user: IUserDTO;
   roomId: string;
 }

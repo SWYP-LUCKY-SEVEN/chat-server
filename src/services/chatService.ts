@@ -1,7 +1,7 @@
 import { userService } from "@services/index";
 import { toObjectId } from "@src/configs/toObjectId";
 import Chat from "@src/models/chatModel";
-import Member from "@src/models/memberModel";
+import User from "@src/models/userModel";
 import { randomUUID } from "crypto";
 import mongoose from 'mongoose';
 
@@ -12,7 +12,7 @@ interface IError extends Error {
 }
 
 // 유저가 속해있는 채팅방인지 검증
-const isRoomAuth = async (chatId: ObjectId, memberId: ObjectId) => {
+const isRoomAuth = async (chatId: ObjectId, userId: ObjectId) => {
   const chatObjectId = toObjectId(chatId);
 
   const chat = await Chat.findById(chatObjectId).populate("users", "_id");
@@ -22,10 +22,8 @@ const isRoomAuth = async (chatId: ObjectId, memberId: ObjectId) => {
     error.statusCode = 400;
     throw error;
   }
-
-  const userObjectId = toObjectId(memberId);
   
-  if (!chat.users.some(user => user._id.toString() === userObjectId)) { //id가 동일한 멤버가 있는지 확인.
+  if (!chat.users.some(user => user._id.toString() === userId)) { //id가 동일한 멤버가 있는지 확인.
     const error = new Error("접근 권한이 없습니다.") as IError;
     error.statusCode = 400;
     throw error;
@@ -33,7 +31,7 @@ const isRoomAuth = async (chatId: ObjectId, memberId: ObjectId) => {
 }
 
 // TODO studyId는 => chatId(ObjectId)로 변환해야함.
-const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
+const getChat = async (chatId: ObjectId, userId: ObjectId) => {
   if (!chatId) {
     const error = new Error("studyId 필수") as IError;
     error.statusCode = 400;
@@ -45,7 +43,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
     _id,
     isDeleted: false,
     $and: [
-      { users: { $elemMatch: { $eq: memberId } } },
+      { users: { $elemMatch: { $eq: userId } } },
     ],
   })
     .populate("users", "-password")
@@ -54,7 +52,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
     return []
   }
 
-  const resultChat = await Member.populate(isChat, {
+  const resultChat = await User.populate(isChat, {
     path: "latestMessages.sender",
     select: "name pic email",
   });
@@ -63,7 +61,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
   }
 };
 
-// const getAccessChat = async (userId: string, reqUseId: string) => {
+// const getAccessChat = async (userId: string, reqUserId: string) => {
 //   if (!userId) {
 //     const error = new Error("없는 유저 id") as IError;
 //     error.statusCode = 400;
@@ -73,14 +71,14 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 //   const isChat = await Chat.find({
 //     isGroupChat: false,
 //     $and: [
-//       { users: { $elemMatch: { $eq: reqUseId } } },
-//       { users: { $elemMatch: { $eq: memberId } } },
+//       { users: { $elemMatch: { $eq: reqUserId } } },
+//       { users: { $elemMatch: { $eq: userId } } },
 //     ],
 //   })
 //     .populate("users", "-password")
 //     .populate("latestMessage");
 
-//   const resultChat = await Member.populate(isChat, {
+//   const resultChat = await User.populate(isChat, {
 //     path: "latestMessage.sender",
 //     select: "name pic email",
 //   });
@@ -91,7 +89,7 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 //     const createdChat = await Chat.create({
 //       chatName: "sender",
 //       isGroupChat: false,
-//       users: [reqUseId, memberId],
+//       users: [reqUserId, userId],
 //     });
 //     if (!createdChat) {
 //       const error = new Error("1:1 채팅 생성 실패") as IError;
@@ -113,18 +111,18 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 
 
 
-// const fetchChats = async (reqUseId: string) => {
+// const fetchChats = async (reqUserId: string) => {
 //   const chats = await Chat.find({
 //     $or: [
-//       // { users: { $elemMatch: { $eq: reqUseId } } },
-//       { users: reqUseId }
+//       // { users: { $elemMatch: { $eq: reqUserId } } },
+//       { users: reqUserId }
 //     ]
 //   })
 //     .populate("users", "-password")
 //     .populate("groupAdmin", "-password")
 //     .populate("latestMessage");
 
-//   const resultChat = await Member.populate(chats, {
+//   const resultChat = await User.populate(chats, {
 //     path: "latestMessage.sender",
 //     select: "nickname pic email",
 //   });
@@ -137,8 +135,8 @@ const getChat = async (chatId: ObjectId, memberId: ObjectId) => {
 //   }
 // };
 
-const createGroupChat = async (memberId: ObjectId, chatId: ObjectId, name: string) => {
-  const existUser = await userService.getUser(memberId)
+const createGroupChat = async (userId: ObjectId, chatId: ObjectId, name: string) => {
+  const existUser = await userService.getUser(userId)
   if(!existUser) {
     const error = new Error("유저 존재하지 않음") as IError;
     error.statusCode = 403;
@@ -160,9 +158,9 @@ const createGroupChat = async (memberId: ObjectId, chatId: ObjectId, name: strin
     _id: chatId,
     chatName: name,
     messageSeq: 0,
-    users: memberId,
+    users: userId,
     isGroupChat: true,
-    groupAdmin: memberId,
+    groupAdmin: userId,
   });
   if (!createdChat) {
     const error = new Error("그륩 채팅 생성 실패") as IError;
@@ -200,8 +198,8 @@ const updateGroupChat = async (chatId: ObjectId, chatName: string) => {
   }
 }
 
-const addToGroup = async (chatId: ObjectId, memberId: ObjectId, reqMemberId?: ObjectId) => { 
-  const user = await userService.getUser(memberId)
+const addToGroup = async (chatId: ObjectId, userId: ObjectId, reqUserId?: ObjectId) => { 
+  const user = await userService.getUser(userId)
   if (!user) {
     const error = new Error("유저가 존재하지 않음") as IError;
     error.statusCode = 404;
@@ -211,17 +209,17 @@ const addToGroup = async (chatId: ObjectId, memberId: ObjectId, reqMemberId?: Ob
   const addedChat = await Chat.findByIdAndUpdate(
       chatId,
       {
-        $push: { users: memberId },
+        $push: { users: userId },
       },
       {
         new: true,
       }
   )
     .where({ users: {
-                $ne : memberId
+                $ne : userId
         }})
     .where({ isGroupChat: true })
-    .where( reqMemberId ? { groupAdmin: reqMemberId  } : {})
+    .where( reqUserId ? { groupAdmin: reqUserId  } : {})
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
     
@@ -234,8 +232,8 @@ const addToGroup = async (chatId: ObjectId, memberId: ObjectId, reqMemberId?: Ob
     }
 }
 
-const removeFromGroup = async (chatId: ObjectId, reqMemberId: ObjectId, memberId: ObjectId) => { 
-  const isAddedUserChat = await Chat.findOne({ _id: chatId, groupAdmin: reqMemberId, isGroupChat: true, users: memberId });
+const removeFromGroup = async (chatId: ObjectId, reqUserId: ObjectId, userId: ObjectId) => { 
+  const isAddedUserChat = await Chat.findOne({ _id: chatId, groupAdmin: reqUserId, isGroupChat: true, users: userId });
 
   if (!isAddedUserChat) {
     const error = new Error("해당 채팅방 없거나 방장 아닌 유저 또는 해당 방에 유저없음") as IError;
@@ -245,7 +243,7 @@ const removeFromGroup = async (chatId: ObjectId, reqMemberId: ObjectId, memberId
     const deletedChat = await Chat.findByIdAndUpdate(
       chatId,
       {
-        $pull: { users: memberId },
+        $pull: { users: userId },
       },
       {
         new: true,
@@ -266,8 +264,8 @@ const removeFromGroup = async (chatId: ObjectId, reqMemberId: ObjectId, memberId
     }
   }
 }
-const deleteChat = async (chatId: ObjectId, memberId: ObjectId) => {
-  const isChat = await Chat.findOne({ groupAdmin: memberId, isGroupChat: true });
+const deleteChat = async (chatId: ObjectId, userId: ObjectId) => {
+  const isChat = await Chat.findOne({ groupAdmin: userId, isGroupChat: true });
   
   if (!isChat) {
     const error = new Error("방장 아님") as IError;
@@ -287,7 +285,7 @@ const deleteChat = async (chatId: ObjectId, memberId: ObjectId) => {
 
 // 채팅에 참가 여부 활성화하고,
 // 채팅방 입장, 나갔음 표시를 위해 존재.
-const recordUserJoin = async (chatId: ObjectId, memberId: ObjectId) => {
+const recordUserJoin = async (chatId: ObjectId, userId: ObjectId) => {
   const isChat = await Chat.findOne({ _id: chatId, isGroupChat: true });
 
   if (!isChat) {
@@ -297,7 +295,7 @@ const recordUserJoin = async (chatId: ObjectId, memberId: ObjectId) => {
   }
 
   const joinDateUser = isChat.joinDates.find((x) => 
-    new mongoose.Types.ObjectId(x.memberId).equals(memberId)  // 전역으로 설정한 ObjectId는 Type. 값으로 사용은 이처럼 직접 불러와야함
+    new mongoose.Types.ObjectId(x.userId).equals(userId)  // 전역으로 설정한 ObjectId는 Type. 값으로 사용은 이처럼 직접 불러와야함
   );
 
   if (!joinDateUser || joinDateUser.isRemoved) {
@@ -308,7 +306,7 @@ const recordUserJoin = async (chatId: ObjectId, memberId: ObjectId) => {
 
   // 접근 기록 업데이트
   const updatedChat = await Chat.findOneAndUpdate(
-    { _id: chatId, "joinDates.userId": memberId },
+    { _id: chatId, "joinDates.userId": userId },
     {
       $set: { 
         "joinDates.$.updatedDate": new Date(),
@@ -333,7 +331,7 @@ const recordUserJoin = async (chatId: ObjectId, memberId: ObjectId) => {
 
 // 채팅에 참가 여부 활성화하고,
 // 채팅방 입장, 나갔음 표시를 위해 존재.
-const recordUserOut = async (chatId: ObjectId, memberId: ObjectId) => {
+const recordUserOut = async (chatId: ObjectId, userId: ObjectId) => {
   // 채팅방 존재 여부 확인
   const isChat = await Chat.findOne({ _id: chatId, isGroupChat: true });
 
@@ -345,7 +343,7 @@ const recordUserOut = async (chatId: ObjectId, memberId: ObjectId) => {
 
   // 사용자 가입 상태 확인
   const joinDateUser = isChat.joinDates.find((x) =>
-    new mongoose.Types.ObjectId(x.memberId).equals(memberId)  // 전역으로 설정한 ObjectId는 Type. 값으로 사용은 이처럼 직접 불러와야함
+    new mongoose.Types.ObjectId(x.userId).equals(userId)  // 전역으로 설정한 ObjectId는 Type. 값으로 사용은 이처럼 직접 불러와야함
   );
 
   if (!joinDateUser) {
@@ -356,7 +354,7 @@ const recordUserOut = async (chatId: ObjectId, memberId: ObjectId) => {
 
   // 사용자 제거 (isRemoved: true로 설정)
   const updatedChat = await Chat.findOneAndUpdate(
-    { _id: chatId, "joinDates.userId": memberId },
+    { _id: chatId, "joinDates.userId": userId },
     {
       $set: {
         "joinDates.$.updatedDate": new Date(),
@@ -379,24 +377,24 @@ const recordUserOut = async (chatId: ObjectId, memberId: ObjectId) => {
 // 사용자 채팅 로직 임의 추가
 // 사용자 채팅에서 제거 (강퇴, 탈퇴 처리)
 // 채팅에 남은 사용자가 없을 경우. 채팅방 삭제
-const leaveFromChat = async (chatId: ObjectId, memberId: ObjectId) => { 
-  const isAddedUserChat = await Chat.findOne({ _id: chatId, isGroupChat: true, users: memberId });
+const leaveFromChat = async (chatId: ObjectId, userId: ObjectId) => { 
+  const isAddedUserChat = await Chat.findOne({ _id: chatId, isGroupChat: true, users: userId });
 
   if (!isAddedUserChat) {
     const error = new Error("해당 채팅방 없거나 방장 아닌 유저 또는 해당 방에 유저없음") as IError;
     error.statusCode = 409;
     throw error; 
-  }else if(isAddedUserChat.groupAdmin._id.toString() === memberId){
+  }else if(isAddedUserChat.groupAdmin._id.toString() === userId){
     const error = new Error("방장은 채팅방을 나갈 수 없습니다.") as IError;
     error.statusCode = 409;
     throw error; 
   }else {
     console.log(isAddedUserChat.groupAdmin._id);
-    console.log(memberId);
+    console.log(userId);
     const updateChat = await Chat.findByIdAndUpdate(
       chatId,
       {
-          $pull: { users: memberId },
+          $pull: { users: userId },
         },
         {
           new: true,
@@ -418,8 +416,8 @@ const leaveFromChat = async (chatId: ObjectId, memberId: ObjectId) => {
 }
 
 //
-const updateChatName = async (chatId: ObjectId, chatName: string, reqMemberId: ObjectId) => { 
-  const chat = await Chat.findOne({ _id: chatId, groupAdmin: reqMemberId, isGroupChat: true });
+const updateChatName = async (chatId: ObjectId, chatName: string, reqUserId: ObjectId) => { 
+  const chat = await Chat.findOne({ _id: chatId, groupAdmin: reqUserId, isGroupChat: true });
 
   if (!chat) {
     const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
@@ -438,8 +436,8 @@ const updateChatName = async (chatId: ObjectId, chatName: string, reqMemberId: O
 }
 
 // 채팅방 공지 생성
-const createChatNotification = async (chatId: ObjectId, memberId: ObjectId, notiContent: string) => {
-  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: memberId, isGroupChat: true });
+const createChatNotification = async (chatId: ObjectId, userId: ObjectId, notiContent: string) => {
+  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: userId, isGroupChat: true });
 
   if (!isChat) {
     const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
@@ -465,8 +463,8 @@ const createChatNotification = async (chatId: ObjectId, memberId: ObjectId, noti
 }
 
 // 채팅방 공지 수정
-const editChatNotification = async (chatId: ObjectId, memberId: ObjectId, noticeId: ObjectId, notiContent: string, isTop: boolean) => {
-  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: memberId, isGroupChat: true });
+const editChatNotification = async (chatId: ObjectId, userId: ObjectId, noticeId: ObjectId, notiContent: string, isTop: boolean) => {
+  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: userId, isGroupChat: true });
 
   if (!isChat) {
     const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
@@ -500,8 +498,8 @@ const editChatNotification = async (chatId: ObjectId, memberId: ObjectId, notice
 }
 
 // 현재 공지 내리기.
-const demoteChatNotification = async (chatId: ObjectId, memberId: ObjectId) => {
-  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: memberId, isGroupChat: true });
+const demoteChatNotification = async (chatId: ObjectId, userId: ObjectId) => {
+  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: userId, isGroupChat: true });
 
   if (!isChat) {
     const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
@@ -525,8 +523,8 @@ const demoteChatNotification = async (chatId: ObjectId, memberId: ObjectId) => {
 }
 
 // 공지 삭제.
-const removeChatNotification = async (chatId: ObjectId, memberId: ObjectId, noticeId: ObjectId) => {
-  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: memberId, isGroupChat: true });
+const removeChatNotification = async (chatId: ObjectId, userId: ObjectId, noticeId: ObjectId) => {
+  const isChat = await Chat.findOne({ _id: chatId, groupAdmin: userId, isGroupChat: true });
   if (!isChat) {
     const error = new Error("채팅 개설자가 아니거나, 채팅이 없음") as IError;
     error.statusCode = 409;
@@ -567,8 +565,8 @@ const removeChatNotification = async (chatId: ObjectId, memberId: ObjectId, noti
 }
 
 // 채팅 내 전체 공지 확인
-const getAllNoticeInChat = async (chatId: ObjectId, memberId: ObjectId) => {
-  const isChat = await Chat.findOne({ _id: chatId, users: memberId, isGroupChat: true });
+const getAllNoticeInChat = async (chatId: ObjectId, userId: ObjectId) => {
+  const isChat = await Chat.findOne({ _id: chatId, users: userId, isGroupChat: true });
 
   if (!isChat) {
     const error = new Error("채팅에 속하지 않았거나, 채팅이 없음.") as IError;
@@ -582,8 +580,8 @@ const getAllNoticeInChat = async (chatId: ObjectId, memberId: ObjectId) => {
 }
 
 // 채팅 내 공지 단일 확인
-const getNoticeInChat = async (chatId: ObjectId, memberId: ObjectId, noticeId: ObjectId) => {
-  const isChat = await Chat.findOne({ _id: chatId, users: memberId, isGroupChat: true });
+const getNoticeInChat = async (chatId: ObjectId, userId: ObjectId, noticeId: ObjectId) => {
+  const isChat = await Chat.findOne({ _id: chatId, users: userId, isGroupChat: true });
   if (!isChat) {
     const error = new Error("채팅에 속하지 않았거나, 채팅이 없음.") as IError;
     error.statusCode = 409;

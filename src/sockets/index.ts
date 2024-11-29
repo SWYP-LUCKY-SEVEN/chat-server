@@ -32,7 +32,7 @@ export const initSocket = (server: http.Server): void => {
   // JWT 해독 미들웨어
   io.use((socket, next)=> {
     console.log("middle!!");
-    decodeJWTMiddleware(socket, next);
+    decodeJWTMiddleware(socket as ICustomSocket, next);
   });
 
   io.on('connection', (socket) => {

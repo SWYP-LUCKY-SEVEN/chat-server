@@ -5,7 +5,7 @@ import { Schema } from "mongoose";
 const MessageSchema = new Schema<IMessageDocument>(
   {
     index: { type: Number },
-    sender: { type: Schema.Types.ObjectId, ref: "Member" },
+    sender: { type: Schema.Types.ObjectId, ref: "User" },
     isPic: {type: Boolean, default: false},
     content: { type: String, trim: true },
     chat: {
@@ -13,7 +13,7 @@ const MessageSchema = new Schema<IMessageDocument>(
        index: true,
        ref: "Chat" 
     },
-    readBy: [{ type: Schema.Types.ObjectId, ref: "Member" }],
+    readBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -10,16 +10,16 @@ interface IError extends Error {
 
 const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     
-    if(!Number(chatId)) {
+    if(!Number(studyId)) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
     
-    const chatObjectId = toObjectId(chatId);
+    const chatId = toObjectId(studyId);
 
-    const user = await messageService.getAllMessages(chatObjectId);
-    res.status(201).json(user);
+    const messages = await messageService.getAllMessages(chatId);
+    res.status(201).json(messages);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
@@ -28,16 +28,16 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
 
 const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     
-    if(!Number(chatId)) {
+    if(!Number(studyId)) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId);
+    const chatId = toObjectId(studyId);
 
-    const user = await messageService.getRecentMessages(chatObjectId, 0, 30);
-    res.status(201).json(user);
+    const messages = await messageService.getRecentMessages(chatId, 0, 30);
+    res.status(201).json(messages);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
@@ -46,18 +46,19 @@ const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
 
 const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqMemberId = req.member?._id;
+    const reqUserId = req.user?._id;
     // 유저 검증 필요.
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { startIndex, range } = req.query;
 
-    if(!Number(chatId) || !startIndex) {
+    if(!Number(studyId) || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId);
+    const chatId = toObjectId(studyId);
 
-    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
+
+    await chatService.isRoomAuth(chatId, reqUserId);
 
     const startIndexNum = parseInt(startIndex as string, 10);
 
@@ -80,25 +81,25 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
 
 const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqMemberId = req.member?._id;
+    const reqUserId = req.user?._id;
     // 유저 검증 필요.
 
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { startIndex, findText } = req.query;
 
-    if(!Number(chatId) || !startIndex || !findText) {
+    if(!Number(studyId) || !startIndex || !findText) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId); 
+    const chatId = toObjectId(studyId);
 
-    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
+    await chatService.isRoomAuth(chatId, reqUserId);
 
     const startIndexNum = parseInt(startIndex as string, 10);
 
-    const indexList = await messageService.findMessagesByContent(chatObjectId, findText as string);
+    const indexList = await messageService.findMessagesByContent(chatId, findText as string);
 
-    const messages = await messageService.findMessagesBetweenIndex(chatObjectId, startIndexNum, indexList.at(0)!.valueOf())
+    const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, indexList.at(0)!.valueOf())
 
     res.status(200).json({ indexList, messages });
 
@@ -110,24 +111,24 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
 
 const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqMemberId = req.member?._id;
+    const reqUserId = req.user?._id;
     // 유저 검증 필요.
 
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { findIndex, startIndex } = req.query;
 
-    if(!Number(chatId) || !findIndex || !startIndex) {
+    if(!Number(studyId) || !findIndex || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const chatObjectId = toObjectHexString(chatId); 
+    const chatId = toObjectId(studyId);
 
-    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
+    await chatService.isRoomAuth(chatId, reqUserId);
 
     const findIndexNum = parseInt(findIndex as string, 10);
     const startIndexNum = parseInt(startIndex as string, 10);
 
-    const messages = await messageService.findMessagesBetweenIndex(chatObjectId, startIndexNum, findIndexNum);
+    const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, findIndexNum);
 
     res.status(200).json(messages);
 
@@ -140,9 +141,9 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
 
 const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqMemberId = req.member?._id;
+    const reqUserId = req.user?._id;
 
-    if (reqMemberId) {
+    if (reqUserId) {
       res.status(201).json(req.body);
     }
   } catch (error: any) {
@@ -154,16 +155,16 @@ const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
 const sendPicture = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const reqMemberId = req.member?._id;
-    const { content, chatId } = req.body;
+    const reqUserId = req.user?._id;
+    const { content, studyId } = req.body;
 
-    const chatObjectId = toObjectHexString(chatId); 
+    const chatId = toObjectId(studyId);
 
-    await chatService.isRoomAuth(chatObjectId, reqUserObjectId);
+    await chatService.isRoomAuth(chatId, reqUserId);
 
-    if (reqMemberId) {
-      const user = await messageService.sendMessage(content, chatObjectId, reqMemberId);
-      res.status(201).json(user);
+    if (reqUserId) {
+      const messages = await messageService.sendMessage(content, chatId, reqUserId);
+      res.status(201).json(messages);
     }
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);

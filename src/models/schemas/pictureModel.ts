@@ -5,7 +5,7 @@ import { Schema } from "mongoose";
 const PictureSchema = new Schema<IPictureDocument>(
     {
       chat: { type: Schema.Types.ObjectId, ref: "Chat" },
-      uploadedBy: { type: Schema.Types.ObjectId, ref: "Member" },
+      uploadedBy: { type: Schema.Types.ObjectId, ref: "User" },
       url: { type: String, trim: true },
     },
     { timestamps: true }

@@ -1,11 +1,14 @@
 import generateToken from "@configs/generateToken";
-import Member from "@src/models/memberModel";
+import User from "@src/models/userModel";
+import mongoose from 'mongoose';
+
+type ObjectId = mongoose.Types.ObjectId;
 
 interface IError extends Error {
   statusCode: number;
 }
 
-const signUpMember = async (
+const signUpUser = async (
   nickname: string,
   email: string,
   password: string,
@@ -17,28 +20,28 @@ const signUpMember = async (
     throw error;
   }
 
-  const nemberExists = await Member.findOne({ email });
+  const userExists = await User.findOne({ email });
 
-  if (nemberExists) {
+  if (userExists) {
     const error = new Error("멤버 존재") as IError;
     error.statusCode = 409;
     throw error;
   }
 
-  const nember = await Member.create({
+  const user = await User.create({
     nickname,
     email,
     password,
     pic,
   });
 
-  if (nember) {
+  if (user) {
     return {
-      _id: nember._id,
-      nickname: nember.nickname,
-      isAdmin: nember.isAdmin,
-      pic: nember.pic,
-      token: generateToken(nember._id),
+      _id: user._id,
+      nickname: user.nickname,
+      isAdmin: user.isAdmin,
+      pic: user.pic,
+      token: generateToken(user._id),
     };
   } else {
     const error = new Error("멤버 생성 안됌") as IError;
@@ -47,15 +50,15 @@ const signUpMember = async (
   }
 };
 
-const signInMember = async (nickname: string) => {
-  const nember = await Member.findOne({ nickname: nickname });
-  if (nember) {
+const signInUser = async (nickname: string) => {
+  const user = await User.findOne({ nickname: nickname });
+  if (user) {
     return {
-      _id: nember._id,
-      nickname: nember.nickname,
-      isAdmin: nember.isAdmin,
-      pic: nember.pic,
-      token: generateToken(nember._id),
+      _id: user._id,
+      nickname: user.nickname,
+      isAdmin: user.isAdmin,
+      pic: user.pic,
+      token: generateToken(user._id),
     };
   } else {
     const error = new Error("멤버 없음") as IError;
@@ -63,7 +66,7 @@ const signInMember = async (nickname: string) => {
     throw error;
   }
 };
-const getMembers = async (keyword: any, memberId: string) => {
+const getUsers = async (keyword: any, userId: ObjectId) => {
   let filter = {};
   keyword
     ? (filter = {
@@ -73,19 +76,19 @@ const getMembers = async (keyword: any, memberId: string) => {
         ],
       })
     : (filter = {});
-  const nembers = await Member.find(filter).find({ _id: { $ne: memberId } });
-  if (nembers) {
-    return nembers;
+  const users = await User.find(filter).find({ _id: { $ne: userId } });
+  if (users) {
+    return users;
   } else {
     const error = new Error("발견된 멤버 없음") as IError;
     error.statusCode = 404;
     throw error;
   }
 };
-const getMember = async (memberId: any) => {
-  const nember = await Member.findOne({_id: memberId});
-  if (nember) {
-    return nember;
+const getUser = async (userId: ObjectId) => {
+  const user = await User.findOne({_id: userId});
+  if (user) {
+    return user;
   } else {
     const error = new Error("발견된 멤버 없음") as IError;
     error.statusCode = 404;
@@ -93,5 +96,5 @@ const getMember = async (memberId: any) => {
   }
 };
 
-export default { signUpMember, signInMember, getMembers, getMember };
+export default { signUpUser, signInUser, getUsers, getUser };
 
