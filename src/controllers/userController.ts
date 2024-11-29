@@ -6,6 +6,7 @@ import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import mongoose from "mongoose";
 import redisClient from "@src/redis/redis-client";
 import { userService } from "@services/index";
+import { toObjectId } from "@src/configs/toObjectId";
 
 const { ObjectId } = mongoose.Types;
 
@@ -13,21 +14,13 @@ interface IError extends Error {
   statusCode: number;
 }
 
-function toObjectHexString(number: any): string {
-  // 숫자를 16진수 문자열로 변환
-  const hexString = number.toString(16);
-  console.log(number, hexString)
-// 16진수 문자열을 24자리의 문자열로 패딩하여 반환
-  return hexString.padStart(24, "0").toString();
-}
-
 const createUser = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { pk, nickname, pic } = req.body;
-    const objectId = toObjectHexString(pk) as string;
-    const _id = new ObjectId(objectId);
+    const { userId, nickname, pic } = req.body;
 
-    const existUser = await User.findOne({_id});
+    const userObjectId = toObjectId(userId);
+
+    const existUser = await User.findOne({userId});
 
     if (existUser) {
       const error = new Error("이미 존재하는 유저") as IError;
@@ -36,7 +29,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const user = await User.create({
-      _id,
+      userId,
       nickname,
       pic,
     });
@@ -59,16 +52,16 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
 
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const objectId = toObjectHexString(id) as string;
-    if (!ObjectId.isValid(objectId)) {
+    const userObjectId = toObjectId(userId);
+    if (!ObjectId.isValid(userObjectId)) {
       const error = new Error("유효하지 않은 유저 ID") as IError;
       error.statusCode = 400;
       throw error;
     }
 
-    const user = await User.findByIdAndDelete(objectId);
+    const user = await User.findByIdAndDelete(userObjectId);
 
     if (!user) {
       const error = new Error("유저를 찾을 수 없습니다") as IError;
@@ -85,18 +78,19 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
 const updateUser = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
     const { nickname, pic } = req.body;
 
-    const objectId = toObjectHexString(id) as string;
 
-    if (!ObjectId.isValid(objectId)) {
+    const userObjectId = toObjectId(userId);
+
+    if (!ObjectId.isValid(userObjectId)) {
       const error = new Error("유효하지 않은 유저 ID") as IError;
       error.statusCode = 400;
       throw error;
     }
 
-    const user = await User.findByIdAndUpdate( objectId,
+    const user = await User.findByIdAndUpdate( userObjectId,
       { nickname, pic },
       { new: true, runValidators: true }
     );

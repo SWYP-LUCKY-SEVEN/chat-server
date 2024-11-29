@@ -11,7 +11,7 @@ router.put("/group/remove", protect, chatController.removeFromGroup);
 router.put("/group/add", protect, chatController.addToGroup);
 router.put("/record/join/:studyId", protect, chatController.recordUserJoin);
 router.put("/record/out/:studyId", protect, chatController.recordUserOut);
-router.put("/group/:studyId", protect, chatController.deleteChat);
+router.delete("/group/:studyId", protect, chatController.deleteChat);
 
 router.delete("/group/user/:userId", chatController.leaveFromChat);
 
