@@ -69,14 +69,14 @@ const createGroupChat = asyncHandler(async (req: Request, res: Response) => {
 
 const updateGroupChat = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { studyId, chatName } = req.body;
+    const { studyId, studyName } = req.body;
 
     
     const chatId = toObjectId(studyId);
 
     const updatedGroupChat = await chatService.updateGroupChat(
       chatId,
-      chatName
+      studyName
     );
     res.status(200).json(updatedGroupChat);
   } catch (error: any) {
