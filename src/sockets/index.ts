@@ -4,7 +4,6 @@ import { handleSetupEvents } from './handlers/setupHandlers';
 import http from 'http';
 import dotenv from 'dotenv';
 import { decodeJWTMiddleware } from './middlewares/authMiddleware';
-import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
 dotenv.config();
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
@@ -32,12 +31,12 @@ export const initSocket = (server: http.Server): void => {
   // JWT 해독 미들웨어
   io.use((socket, next)=> {
     console.log("middle!!");
-    decodeJWTMiddleware(socket as ICustomSocket, next);
+    decodeJWTMiddleware(socket as Socket, next);
   });
 
   io.on('connection', (socket) => {
     console.log("connected to socket.io");
-    handleChatEvents(io, socket as ICustomSocket);
-    handleSetupEvents(socket as ICustomSocket);
+    handleChatEvents(io, socket as Socket);
+    handleSetupEvents(socket as Socket);
   });
 }

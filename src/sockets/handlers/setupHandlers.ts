@@ -1,8 +1,7 @@
-import { Socket } from 'socket.io';
 import { toObjectId } from '@src/configs/toObjectId';
-import { ICustomSocket } from '@src/types/socket/ICustomSocket';
+import { Socket } from 'socket.io';
 
-export const handleSetupEvents = (socket: ICustomSocket): void => {
+export const handleSetupEvents = (socket: Socket): void => {
     socket.on("setup", () => {  // 채팅방 입장시,
         socket.join(socket.user._id.toString());
         socket.emit("connected");

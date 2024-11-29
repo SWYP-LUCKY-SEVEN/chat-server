@@ -1,12 +1,13 @@
 import jwt from 'jsonwebtoken';
-import { Socket } from 'socket.io';
 import User from "@src/models/userModel";
 import { toObjectId } from "@src/configs/toObjectId";
-import { ICustomSocket } from '@src/types/socket/ICustomSocket';
+import IUserDTO from '@src/dtos/userDto';
+import { ObjectId } from 'mongoose';
+import { Socket } from 'socket.io';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-const decodeJWTMiddleware = (socket:  ICustomSocket, next: (err?: any) => void) => {
+const decodeJWTMiddleware = (socket: Socket, next: (err?: any) => void) => {
     const authToken = socket.handshake?.auth.token;
         
     if (!authToken) {
@@ -28,9 +29,10 @@ const decodeJWTMiddleware = (socket:  ICustomSocket, next: (err?: any) => void) 
         }
         try {
           const userId = decoded.sub;
-          const user = await User.findById(toObjectId(userId));
+          const user = await User.findById(toObjectId(userId)).lean<IUserDTO>();
           if (user) {
             socket.user = user;
+        
             next();
           } else {
             throw new Error("User not found");

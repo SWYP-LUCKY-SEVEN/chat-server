@@ -23,7 +23,7 @@ const isRoomAuth = async (chatId: ObjectId, userId: ObjectId) => {
     throw error;
   }
   
-  if (!chat.users.some(user => user._id.toString() === userId)) { //id가 동일한 멤버가 있는지 확인.
+  if (!chat.users.some(user => user._id === userId)) { //id가 동일한 멤버가 있는지 확인.
     const error = new Error("접근 권한이 없습니다.") as IError;
     error.statusCode = 400;
     throw error;
@@ -384,7 +384,7 @@ const leaveFromChat = async (chatId: ObjectId, userId: ObjectId) => {
     const error = new Error("해당 채팅방 없거나 방장 아닌 유저 또는 해당 방에 유저없음") as IError;
     error.statusCode = 409;
     throw error; 
-  }else if(isAddedUserChat.groupAdmin._id.toString() === userId){
+  }else if(isAddedUserChat.groupAdmin._id === userId){
     const error = new Error("방장은 채팅방을 나갈 수 없습니다.") as IError;
     error.statusCode = 409;
     throw error; 

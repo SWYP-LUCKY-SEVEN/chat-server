@@ -1,11 +1,10 @@
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { chatService, messageService } from "@services/index";
-import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 import { toObjectId } from '@src/configs/toObjectId';
 
 
-export const handleChatEvents = (io: SocketIOServer, socket: ICustomSocket): void => {
+export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
     socket.on("join chat", (studyId) => {  //chat id로 설정된 room에 가입
 
         const reqUserId = socket.user._id;
