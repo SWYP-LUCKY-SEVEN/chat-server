@@ -2,14 +2,16 @@ import { Socket, Server } from 'socket.io';
 import { handleChatEvents } from './handlers/chatHandlers';
 import { handleSetupEvents } from './handlers/setupHandlers';
 import http from 'http';
-import dotenv from 'dotenv'
-import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import { decodeJWTMiddleware } from './middlewares/authMiddleware';
-import IUserDTO from '@src/dtos/userDto';
+import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
 dotenv.config();
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 console.log(allowedOrigins)
+
+
+
 
 export const initSocket = (server: http.Server): void => {
   const io = new Server(server, {
@@ -30,12 +32,12 @@ export const initSocket = (server: http.Server): void => {
   // JWT 해독 미들웨어
   io.use((socket, next)=> {
     console.log("middle!!");
-    decodeJWTMiddleware(socket, next);
+    decodeJWTMiddleware(socket as ICustomSocket, next);
   });
 
   io.on('connection', (socket) => {
     console.log("connected to socket.io");
-    handleChatEvents(io, socket as Socket & { user: IUserDTO});
-    handleSetupEvents(socket);
+    handleChatEvents(io, socket as ICustomSocket);
+    handleSetupEvents(socket as ICustomSocket);
   });
 }

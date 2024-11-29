@@ -102,7 +102,7 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (!user) {
-      const error = new Error("유저를 찾을 수 없습니다") as IError;
+      const error = new Error("멤버를 찾을 수 없습니다") as IError;
       error.statusCode = 404;
       throw error;
     }
@@ -140,8 +140,8 @@ const signInUser = asyncHandler(async (req: Request, res: Response) => {
 const getUsers = asyncHandler(async (req: Request, res: Response) => {
   try {
     const keyword = req.query.search;
-    const userId = req.user?._id;
-    const users = await userService.getUsers(keyword, userId);
+    const reqUserId = req.user?._id;
+    const users = await userService.getUsers(keyword, reqUserId);
     res.status(200).json(users);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);

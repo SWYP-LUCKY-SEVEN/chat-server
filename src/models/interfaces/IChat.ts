@@ -1,9 +1,10 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 import { IMessage } from "./IMessage";
 import User from "./IUser";
+import { ICustomSocket } from '@src/types/socket/ICustomSocket';
 
-export interface INoti {
-  _id: String;
+export interface INoti { 
+  _id: Types.ObjectId;
   isTop: boolean,
   contents: string
 }

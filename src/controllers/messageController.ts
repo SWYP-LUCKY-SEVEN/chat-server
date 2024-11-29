@@ -1,5 +1,6 @@
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import { messageService, chatService } from "@services/index";
+import { toObjectId} from "@src/configs/toObjectId";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 
@@ -9,14 +10,16 @@ interface IError extends Error {
 
 const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     
-    if(!Number(chatId)) {
+    if(!Number(studyId)) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+    
+    const chatId = toObjectId(studyId);
 
-    const user = await messageService.getAllMessages(chatId);
-    res.status(201).json(user);
+    const messages = await messageService.getAllMessages(chatId);
+    res.status(201).json(messages);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
@@ -25,14 +28,16 @@ const getAllMessages = asyncHandler(async (req: Request, res: Response) => {
 
 const getRecentMessages = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     
-    if(!Number(chatId)) {
+    if(!Number(studyId)) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
 
-    const user = await messageService.getRecentMessages(chatId, 0, 30);
-    res.status(201).json(user);
+    const chatId = toObjectId(studyId);
+
+    const messages = await messageService.getRecentMessages(chatId, 0, 30);
+    res.status(201).json(messages);
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
     res.status(error.statusCode).json(error.message);
@@ -43,12 +48,15 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
   try {
     const reqUserId = req.user?._id;
     // 유저 검증 필요.
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { startIndex, range } = req.query;
 
-    if(!Number(chatId) || !startIndex) {
+    if(!Number(studyId) || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+
+    const chatId = toObjectId(studyId);
+
 
     await chatService.isRoomAuth(chatId, reqUserId);
 
@@ -76,12 +84,14 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
     const reqUserId = req.user?._id;
     // 유저 검증 필요.
 
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { startIndex, findText } = req.query;
 
-    if(!Number(chatId) || !startIndex || !findText) {
+    if(!Number(studyId) || !startIndex || !findText) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+
+    const chatId = toObjectId(studyId);
 
     await chatService.isRoomAuth(chatId, reqUserId);
 
@@ -104,12 +114,14 @@ const findMessagesBetweenIndex = asyncHandler(async (req: Request, res: Response
     const reqUserId = req.user?._id;
     // 유저 검증 필요.
 
-    const { chatId } = req.params;
+    const { studyId } = req.params;
     const { findIndex, startIndex } = req.query;
 
-    if(!Number(chatId) || !findIndex || !startIndex) {
+    if(!Number(studyId) || !findIndex || !startIndex) {
       res.status(404).json({ message: "입력값 오류입니다." });
     }
+
+    const chatId = toObjectId(studyId);
 
     await chatService.isRoomAuth(chatId, reqUserId);
 
@@ -144,13 +156,15 @@ const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 const sendPicture = asyncHandler(async (req: Request, res: Response) => {
   try {
     const reqUserId = req.user?._id;
-    const { content, chatId } = req.body;
+    const { content, studyId } = req.body;
 
-    chatService.isRoomAuth(chatId, reqUserId);
+    const chatId = toObjectId(studyId);
+
+    await chatService.isRoomAuth(chatId, reqUserId);
 
     if (reqUserId) {
-      const user = await messageService.sendMessage(content, chatId, reqUserId);
-      res.status(201).json(user);
+      const messages = await messageService.sendMessage(content, chatId, reqUserId);
+      res.status(201).json(messages);
     }
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
