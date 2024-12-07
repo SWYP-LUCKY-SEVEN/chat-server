@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from "express";
 import User from "@src/models/userModel";
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 
 const protect = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

@@ -1,5 +1,5 @@
 import generateToken from "@configs/generateToken";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 import Chat from "@src/models/chatModel";
 import Message from "@src/models/messageModel";
 import User from "@src/models/userModel";

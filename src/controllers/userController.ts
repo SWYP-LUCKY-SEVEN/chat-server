@@ -6,7 +6,7 @@ import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import mongoose from "mongoose";
 import redisClient from "@src/redis/redis-client";
 import { userService } from "@services/index";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 
 const { ObjectId } = mongoose.Types;
 

@@ -8,3 +8,12 @@ export function toObjectId(number: any): mongoose.Types.ObjectId {
 
   return new ObjectId(hexString);
 }
+
+
+export function toNumber(objectId: mongoose.Types.ObjectId): number {
+  // ObjectId를 16진수 문자열로 변환
+  const hexString: string = objectId.toHexString();
+  
+  // 16진수 문자열을 숫자로 변환
+  return parseInt(hexString, 16);
+}

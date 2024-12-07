@@ -1,7 +1,7 @@
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { chatService, messageService } from "@services/index";
-import { toObjectId } from '@src/configs/toObjectId';
+import { toObjectId } from '@src/configs/utill';
 
 
 export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
@@ -23,8 +23,7 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
 
         if(roomId) socket.broadcast.to(roomId).emit("user joined", roomId);     
 
-        socket.emit("", "");
-
+        socket.emit("joined chat", roomId);
     });
     
     socket.on("typing", () => {
@@ -33,11 +32,11 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
 
     socket.on("stop typing", () => socket.broadcast.to(socket.roomId).emit("stop typing"));
     
-    socket.on("new message", async(newMessageReceived) => {
+    socket.on("new message", async(message) => {
         const user = socket.user;
-        const chatId = newMessageReceived.chat._id;
+        const chatId = message.chat._id;
         if (!chatId) return console.log("chatId is not defined");
-        const result = await messageService.sendMessage(newMessageReceived.content, chatId, user._id);
+        const result = await messageService.sendMessage(message.content, chatId, user._id);
         
         socket.broadcast.to(chatId).emit("message received", result); // 자신을 제외하고 브로드캐스트
     });

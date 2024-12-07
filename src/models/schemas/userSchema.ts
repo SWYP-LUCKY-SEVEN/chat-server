@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 
 const UserSchema = new Schema<IUserDocument>(
   {
+    _id: { type: Schema.Types.ObjectId }, // required: true 는 디폴트
     nickname: { type: String, required: true },
     pic: {
       type: String,

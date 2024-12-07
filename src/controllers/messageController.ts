@@ -1,6 +1,6 @@
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import { messageService, chatService } from "@services/index";
-import { toObjectId} from "@src/configs/toObjectId";
+import { toObjectId} from "@src/configs/utill";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 

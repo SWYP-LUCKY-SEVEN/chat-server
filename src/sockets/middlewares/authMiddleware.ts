@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from "@src/models/userModel";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 import IUserDTO from '@src/dtos/userDto';
 import { ObjectId } from 'mongoose';
 import { Socket } from 'socket.io';

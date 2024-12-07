@@ -1,5 +1,5 @@
 import { userService } from "@services/index";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 import Chat from "@src/models/chatModel";
 import User from "@src/models/userModel";
 import { randomUUID } from "crypto";

@@ -4,7 +4,7 @@ import asyncHandler from "express-async-handler";
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import mongoose from "mongoose";
 import { pictureService } from "@services/index";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 
 interface IError extends Error {
     statusCode: number;

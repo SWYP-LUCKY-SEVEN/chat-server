@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { chatService } from "@services/index";
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
-import { toObjectId } from "@src/configs/toObjectId";
+import { toObjectId } from "@src/configs/utill";
 
 interface IError extends Error {
   statusCode: number;
@@ -69,14 +69,14 @@ const createGroupChat = asyncHandler(async (req: Request, res: Response) => {
 
 const updateGroupChat = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { studyId, studyName } = req.body;
+    const { studyId, chatName } = req.body;
 
     
     const chatId = toObjectId(studyId);
 
     const updatedGroupChat = await chatService.updateGroupChat(
       chatId,
-      studyName
+      chatName
     );
     res.status(200).json(updatedGroupChat);
   } catch (error: any) {
@@ -198,6 +198,7 @@ const leaveFromChat = asyncHandler(async (req: Request, res: Response) => {
     res.status(error.statusCode).json(error.message);
   }
 });
+
 // 채팅방 이름 업데이트
 const updateChatName = asyncHandler(async (req: Request, res: Response) => {
   try {
