@@ -20,7 +20,7 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
 
     const userObjectId = toObjectId(userId);
 
-    const existUser = await User.findOne({userId});
+    const existUser = await User.findOne({userObjectId});
 
     if (existUser) {
       const error = new Error("이미 존재하는 유저") as IError;
@@ -28,8 +28,9 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
       throw error;
     }
 
+    console.log(userObjectId)
     const user = await User.create({
-      userId,
+      _id: userObjectId,
       nickname,
       pic,
     });
