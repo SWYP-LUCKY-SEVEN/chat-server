@@ -16,7 +16,7 @@ export const initSocket = (server: http.Server): void => {
   const io = new Server(server, {
     path: '/chat/socket.io/',
     cors:{
-      origin: allowedOrigins,
+      origin: '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], 
       credentials: true
     }
