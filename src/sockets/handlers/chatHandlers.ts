@@ -34,10 +34,16 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
     
     socket.on("new message", async(message) => {
         const user = socket.user;
-        const chatId = message.chat._id;
+        const studyId = message.studyId;
+
+        const chatId = toObjectId(studyId);
         if (!chatId) return console.log("chatId is not defined");
         const result = await messageService.sendMessage(message.content, chatId, user._id);
         
-        socket.broadcast.to(chatId).emit("message received", result); // 자신을 제외하고 브로드캐스트
+        const roomId = chatId.toHexString();
+        
+        socket.broadcast.to(roomId).emit("message received", result); // 자신을 제외하고 브로드캐스트
+
+        socket.emit("my message", result);
     });
 };
