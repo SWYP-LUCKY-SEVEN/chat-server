@@ -1,12 +1,7 @@
 import { Document, Types } from "mongoose";
 import { IMessage } from "./IMessage";
 import User from "./IUser";
-
-export interface INoti { 
-  _id: Types.ObjectId;
-  isTop: boolean,
-  contents: string
-}
+import { INoti } from "./INoti";
 
 export interface IJoinDates {
   userId: string,

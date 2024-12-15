@@ -154,24 +154,20 @@ const createGroupChat = async (userId: ObjectId, chatId: ObjectId, name: string)
     throw error;
   }
 
-  const createdChat = await Chat.create({
-    _id: chatId,
-    chatName: name,
-    messageSeq: 0,
-    users: userId,
-    isGroupChat: true,
-    groupAdmin: userId,
-  });
-  if (!createdChat) {
-    const error = new Error("그륩 채팅 생성 실패") as IError;
+  try {
+    const createdChat = await Chat.create({
+      _id: chatId,
+      chatName: name,
+      messageSeq: 0,
+      users: userId,
+      isGroupChat: true,
+      groupAdmin: userId
+    });
+    return createdChat;
+  } catch (err) {
+    console.error("Error creating chat:", err);
+    const error = new Error("Error creating chat") as IError;
     error.statusCode = 400;
-    throw error;
-  }
-
-  if (createdChat) return createdChat;
-  else {
-    const error = new Error("그륩 채팅 조회 실패") as IError;
-    error.statusCode = 404;
     throw error;
   }
 };

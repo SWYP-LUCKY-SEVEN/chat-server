@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
-
-import { INoti } from "@src/models/interfaces/IChat";
+import { INoti } from "../interfaces/INoti";
 
 const NotiSchema = new Schema<INoti>(
     {
