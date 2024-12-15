@@ -23,7 +23,12 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
 
         if(roomId) socket.broadcast.to(roomId).emit("user joined", roomId);     
 
-        socket.emit("joined chat", reqUserId);
+        const result = {
+            reqUserId,
+            roomId
+        }
+
+        socket.emit("joined chat", result);
     });
     
     socket.on("typing", () => {
