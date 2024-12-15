@@ -23,7 +23,7 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
 
         if(roomId) socket.broadcast.to(roomId).emit("user joined", roomId);     
 
-        socket.emit("joined chat", roomId);
+        socket.emit("joined chat", reqUserId);
     });
     
     socket.on("typing", () => {
@@ -41,9 +41,10 @@ export const handleChatEvents = (io: SocketIOServer, socket: Socket): void => {
         const result = await messageService.sendMessage(message.content, chatId, user._id);
         
         const roomId = chatId.toHexString();
-        
+
         socket.broadcast.to(roomId).emit("message received", result); // 자신을 제외하고 브로드캐스트
 
         socket.emit("my message", result);
     });
+    
 };
