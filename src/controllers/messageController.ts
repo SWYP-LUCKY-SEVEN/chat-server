@@ -64,9 +64,9 @@ const getMessagesByRange = asyncHandler(async (req: Request, res: Response) => {
 
     let targetIndex = startIndexNum;
     if (!range) {
-      targetIndex += parseInt(process.env.CHAT_MESSAGE_RANGE_DEFAULT!, 10); //default 30
+      targetIndex -= parseInt(process.env.CHAT_MESSAGE_RANGE_DEFAULT!, 10); //default 30
     } else {
-      targetIndex += parseInt(range as string, 10);
+      targetIndex -= parseInt(range as string, 10);
     }
 
     const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, targetIndex);

@@ -161,6 +161,10 @@ const findMessagesBetweenIndex = async (
     throw error;
   }
 
+  if (targetIndex < 0) {
+    targetIndex = 0;
+  }
+
   // TODO 검증 필요
   const messages = await Message.find({
     chat: chatId,
@@ -171,7 +175,7 @@ const findMessagesBetweenIndex = async (
   })
   .sort({ index: -1 }) // 내림차순 (최근 메세지가 앞으로)
   .populate("sender", "nickname pic");
-  
+
   return messages;
 }
 
