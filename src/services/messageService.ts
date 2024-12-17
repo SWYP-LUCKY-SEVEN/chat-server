@@ -130,7 +130,8 @@ const findMessagesByContent  = async (
       content: { $regex: findText, $options: "i" } // 대소문자 구분 없이 검색
     },
     { index: 1, _id: 0 } // _id는 디폴트라 언급해서 제외 필요.
-  );
+  )
+  .sort({ index: -1 });
   
   const indexList = messageIndexes.map(message => message.index);
 
