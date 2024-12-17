@@ -154,21 +154,24 @@ const findMessagesBetweenIndex = async (
     error.statusCode = 400;
     throw error;
   }
-  if (startIndex <= targetIndex) {
+
+  if (startIndex < targetIndex) {
     const error = new Error("찾는 index가 이미 현재 보유한 데이터에 존재합니다.") as IError;
     error.statusCode = 400;
     throw error;
   }
 
   // TODO 검증 필요
-
   const messages = await Message.find({
     chat: chatId,
-    index: { $lte: startIndex, $gte: targetIndex } // startIndex 이하, targetIndex 이상
+    index: { 
+      $lte: startIndex, // startIndex 이하 
+      $gte: targetIndex // targetIndex 이상
+    }
   })
   .sort({ index: -1 }) // 내림차순 (최근 메세지가 앞으로)
   .populate("sender", "nickname pic");
-
+  
   return messages;
 }
 

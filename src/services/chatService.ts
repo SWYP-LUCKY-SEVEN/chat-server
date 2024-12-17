@@ -23,7 +23,7 @@ const isRoomAuth = async (chatId: ObjectId, userId: ObjectId) => {
     throw error;
   }
   
-  if (!chat.users.some(user => user._id === userId)) { //id가 동일한 멤버가 있는지 확인.
+  if (!chat.users.some(user => user._id.equals(userId))) { //id가 동일한 멤버가 있는지 확인.
     const error = new Error("접근 권한이 없습니다.") as IError;
     error.statusCode = 400;
     throw error;
