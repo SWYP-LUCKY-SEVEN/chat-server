@@ -1,6 +1,7 @@
 import errorLoggerMiddleware from "@middlewares/loggerMiddleware";
 import { messageService, chatService } from "@services/index";
 import { toObjectId} from "@src/configs/utill";
+import { IMessage } from "@src/models/interfaces/IMessage";
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 
@@ -99,7 +100,10 @@ const findMessageByText = asyncHandler(async (req: Request, res: Response) => {
 
     const indexList = await messageService.findMessagesByContent(chatId, findText as string);
 
-    const messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, indexList.at(0)!.valueOf())
+    let messages:Array<IMessage> = [];
+    if (startIndexNum >= indexList.at(0)!.valueOf()) {
+      messages = await messageService.findMessagesBetweenIndex(chatId, startIndexNum, indexList.at(0)!.valueOf())
+    }
 
     res.status(200).json({ indexList, messages });
 
