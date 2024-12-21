@@ -86,21 +86,22 @@ const updateGroupChat = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // 사용자 채팅에 추가
-const addToGroup = asyncHandler(async (req: Request, res: Response) => {
+const userAddToGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
+    const reqUserId = req.user?._id; // JWT 정보 확인 미들웨어에서 이미 ObjectId화 됨.
+
     const { studyId, userId, type } = req.body;
 
     const chatId = toObjectId(studyId);
-    const reqUserId = req.user?._id; // JWT 정보 확인 미들웨어에서 이미 ObjectId화 됨.
-    let userObjectId
-    if (type == "join") {
-      userObjectId = reqUserId;
-    } else if (type == "accept") {
-      userObjectId = toObjectId(userId);
-    }
+    const userObjectId = toObjectId(userId);
+    
     if (chatId && userObjectId) {
-      const updatedGroupChat = await chatService.addToGroup(chatId, userObjectId, reqUserId);
-      res.status(200).json(updatedGroupChat);
+      if (type == "join") {
+        const updatedGroupChat = await chatService.joinToGroup(chatId, userObjectId);
+        res.status(200).json(updatedGroupChat);
+      } else if (type == "accept") {
+        const updatedGroupChat = await chatService.acceptToGroup(chatId, userObjectId, reqUserId);
+      }
     }
   } catch (error: any) {
     errorLoggerMiddleware(error as IError, req, res);
@@ -109,7 +110,7 @@ const addToGroup = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // 사용자 채팅에서 제거
-const removeFromGroup = asyncHandler(async (req: Request, res: Response) => {
+const userRemoveFromGroup = asyncHandler(async (req: Request, res: Response) => {
   try {
     const { studyId, userId } = req.body;
     const reqUserId = req.user?._id;
@@ -333,9 +334,9 @@ const getNoticeInChat = asyncHandler(async (req: Request, res: Response) => {
 export default {
   getChat,
   createGroupChat,
-  addToGroup,
+  userAddToGroup,
   updateGroupChat,
-  removeFromGroup,
+  userRemoveFromGroup,
   deleteChat,
   recordUserJoin,
   recordUserOut,

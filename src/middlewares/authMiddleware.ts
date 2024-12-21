@@ -19,7 +19,7 @@ const protect = asyncHandler(
         token = req.headers.authorization.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
           sub: any; id?: string 
-};
+        };
         const userId = decoded.sub
         req.user = await User.findById(toObjectId(userId)) || undefined;
         next();
