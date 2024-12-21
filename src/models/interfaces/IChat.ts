@@ -1,12 +1,7 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 import { IMessage } from "./IMessage";
 import User from "./IUser";
-
-export interface INoti {
-  _id: String;
-  isTop: boolean,
-  contents: string
-}
+import { INoti } from "./INoti";
 
 export interface IJoinDates {
   userId: string,
@@ -20,6 +15,7 @@ interface IChat {
   isGroupChat: boolean;
   users: User[];
   latestMessage: IMessage;
+  messageSeq: number;
   groupAdmin: User;
   isDeleted: boolean
   noti: INoti[]

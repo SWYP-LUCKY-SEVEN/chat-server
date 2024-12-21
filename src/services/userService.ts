@@ -1,5 +1,8 @@
 import generateToken from "@configs/generateToken";
 import User from "@src/models/userModel";
+import mongoose from 'mongoose';
+
+type ObjectId = mongoose.Types.ObjectId;
 
 interface IError extends Error {
   statusCode: number;
@@ -20,7 +23,7 @@ const signUpUser = async (
   const userExists = await User.findOne({ email });
 
   if (userExists) {
-    const error = new Error("유저 존재") as IError;
+    const error = new Error("멤버 존재") as IError;
     error.statusCode = 409;
     throw error;
   }
@@ -41,7 +44,7 @@ const signUpUser = async (
       token: generateToken(user._id),
     };
   } else {
-    const error = new Error("유저 생성 안됌") as IError;
+    const error = new Error("멤버 생성 안됌") as IError;
     error.statusCode = 404;
     throw error;
   }
@@ -58,12 +61,12 @@ const signInUser = async (nickname: string) => {
       token: generateToken(user._id),
     };
   } else {
-    const error = new Error("유저 없음") as IError;
+    const error = new Error("멤버 없음") as IError;
     error.statusCode = 404;
     throw error;
   }
 };
-const getUsers = async (keyword: any, userId: string) => {
+const getUsers = async (keyword: any, userId: ObjectId) => {
   let filter = {};
   keyword
     ? (filter = {
@@ -77,17 +80,17 @@ const getUsers = async (keyword: any, userId: string) => {
   if (users) {
     return users;
   } else {
-    const error = new Error("발견된 유저 없음") as IError;
+    const error = new Error("발견된 멤버 없음") as IError;
     error.statusCode = 404;
     throw error;
   }
 };
-const getUser = async (userId: any) => {
-  const users = await User.findOne({_id: userId});
-  if (users) {
-    return users;
+const getUser = async (userId: ObjectId) => {
+  const user = await User.findOne({_id: userId});
+  if (user) {
+    return user;
   } else {
-    const error = new Error("발견된 유저 없음") as IError;
+    const error = new Error("발견된 멤버 없음") as IError;
     error.statusCode = 404;
     throw error;
   }

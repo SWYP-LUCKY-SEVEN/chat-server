@@ -6,11 +6,13 @@ import generateToken from "@configs/generateToken";
 import moment from 'moment'
 import mongoose from "mongoose";
 
+type ObjectId = mongoose.Types.ObjectId;
+
 interface IError extends Error {
     statusCode: number;
 }
 
-const getPictureData = async(picId: string) => {
+const getPictureData = async(picId: ObjectId) => {
   if (!picId) {
     const error = new Error("picId 확인") as IError;
     error.statusCode = 400;
@@ -28,7 +30,7 @@ const getPictureData = async(picId: string) => {
     }
   }
 }
-const getChatGallery = async(chatId: string) => {
+const getChatGallery = async(chatId: ObjectId) => {
     if (!chatId) {
         const error = new Error("picId 확인") as IError;
         error.statusCode = 400;
@@ -66,7 +68,7 @@ const getChatGallery = async(chatId: string) => {
         return pictureByDay;
     }
 }
-const getChatSimpleGallery = async(chatId: string, limit: number) => {
+const getChatSimpleGallery = async(chatId: ObjectId, limit: number) => {
     if (!chatId) {
         const error = new Error("picId 확인") as IError;
         error.statusCode = 400;
@@ -86,7 +88,7 @@ const getChatSimpleGallery = async(chatId: string, limit: number) => {
       }
 }
 
-const postPicture = async(url: string, chatId: string, reqUserId: string) => {
+const postPicture = async(url: string, chatId: ObjectId, reqUserId: ObjectId) => {
     if (!url || !chatId) {
         const error = new Error("유효하지 않은 요청") as IError;
         error.statusCode = 400;

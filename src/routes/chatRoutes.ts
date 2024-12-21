@@ -3,17 +3,15 @@ import express from "express";
 import { protect } from "@middlewares/authMiddleware";
 
 const router = express.Router();
-router.get("/", protect, chatController.fetchChats);
 router.get("/:studyId", protect, chatController.getChat);
-router.post("/", protect, chatController.getAccessChat);
 router.post("/study", chatController.createGroupChat);
 router.put("/group", protect, chatController.updateGroupChat);
 router.put("/group/name", protect, chatController.updateChatName);
-router.put("/group/remove", protect, chatController.removeFromGroup);
-router.put("/group/add", protect, chatController.addToGroup);
-router.put("/join/add/:studyId", protect, chatController.addJoinToGroup);
-router.put("/join/remove/:studyId", protect, chatController.removeJoinToGroup);
-router.put("/group/:studyId", protect, chatController.deleteChat);
+router.put("/group/remove", protect, chatController.userRemoveFromGroup);
+router.put("/group/add", protect, chatController.userAddToGroup);
+router.put("/record/join/:studyId", protect, chatController.recordUserJoin);
+router.put("/record/out/:studyId", protect, chatController.recordUserOut);
+router.delete("/group/:studyId", protect, chatController.deleteChat);
 
 router.delete("/group/user/:userId", chatController.leaveFromChat);
 

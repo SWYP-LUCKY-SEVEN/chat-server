@@ -12,13 +12,17 @@ const ChatSchema = new Schema<IChatDocument>(
       type: Schema.Types.ObjectId,
       ref: "Message",
     },
+    messageSeq: { type: Number, default: 0 },
     groupAdmin: { type: Schema.Types.ObjectId, ref: "User" },
     isDeleted: {
       type: Schema.Types.Boolean,
       index: true,
       default: false
     },
-    noti: [NotiSchema],
+    noti: {
+      type: [NotiSchema],
+      default: [], 
+    },
     topNoti: { type: Number, default: null },
     joinDates: {
       type: Schema.Types.Mixed,

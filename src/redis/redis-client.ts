@@ -1,12 +1,9 @@
-import { createClient, RedisClientOptions } from "@redis/client";
+import { createClient, type RedisClientOptions } from "@redis/client";
+import "../configs/env";
 const redisOptions: RedisClientOptions = {
-  socket: {
-    // host: process.env.REDIS_HOST,
-    // port: Number(process.env.REDIS_PORT),
-  },
-  url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`,
-  legacyMode: true,
+  url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`
 };
+
 const redisClient = createClient(redisOptions);
 redisClient.connect();
 redisClient.on("connect", () => {
@@ -15,5 +12,6 @@ redisClient.on("connect", () => {
 redisClient.on("error", (err) => {
   console.error("Redis Client Error", err);
 });
+
 
 export default redisClient;
