@@ -19,11 +19,7 @@ const ChatSchema = new Schema<IChatDocument>(
       index: true,
       default: false
     },
-    noti: {
-      type: [NotiSchema],
-      default: [], 
-    },
-    topNoti: { type: Number, default: null },
+    topNoti: { type: NotiSchema, default: null },
     joinDates: {
       type: Schema.Types.Mixed,
       default: []

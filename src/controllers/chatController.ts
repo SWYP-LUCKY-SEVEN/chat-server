@@ -221,6 +221,26 @@ const updateChatName = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
+// 채팅 공지로 등록
+const enrollChatNotification = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { studyId } = req.params;
+    const { messageId } = req.body;
+    const reqUserId = req.user?._id;
+    
+    const chatId = toObjectId(studyId);
+    const messageObjectId = toObjectId(messageId);
+
+    if (reqUserId && chatId) {
+      const createNotiChat = await chatService.enrollChatNotification(chatId, reqUserId, messageObjectId);
+      res.status(201).json(createNotiChat);
+    }
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+
 // 공지 작성 
 const createChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {

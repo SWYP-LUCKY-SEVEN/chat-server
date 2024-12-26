@@ -18,8 +18,7 @@ interface IChat {
   messageSeq: number;
   groupAdmin: User;
   isDeleted: boolean
-  noti: INoti[]
-  topNoti: number | null;
+  topNoti: INoti | null;
   joinDates: IJoinDates[]
 }
 
