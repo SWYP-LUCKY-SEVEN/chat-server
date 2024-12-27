@@ -6,6 +6,7 @@ import Noti from "@src/models/notiModel";
 import Message from "@src/models/messageModel";
 import { randomUUID } from "crypto";
 import mongoose from 'mongoose';
+import { getIO } from "@src/sockets";
 
 type ObjectId = mongoose.Types.ObjectId;
 
@@ -468,7 +469,7 @@ const updateChatName = async (chatId: ObjectId, chatName: string, reqUserId: Obj
 
 
 // 채팅 공지로 등록
-const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messageId: ObjectId) => {
+const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messageIdx: Number) => {
   const isChat = await Chat.findOne({ _id: chatId, users: userId, isGroupChat: true });
 
   if (!isChat) {
@@ -477,7 +478,7 @@ const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messag
     throw error;
   }
 
-  const message = await Message.findById(messageId);
+  const message = await Message.findOne({ chatId, index: messageIdx });
 
   if (!message) {
     const error = new Error("메시지를 찾을 수 없음") as IError;
@@ -494,6 +495,11 @@ const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messag
   isChat.topNoti = newNoti;
 
   const updatedChat = await isChat.save();
+
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
 
   return updatedChat;
 }
@@ -519,10 +525,15 @@ const createChatNotification = async (chatId: ObjectId, userId: ObjectId, notiCo
 
   const updatedChat = await isChat.save();
 
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
+
   return updatedChat;
 }
 
-// 채팅방 최상단 공지로 수정정
+// 채팅방 최상단 공지로 수정
 const editChatTopNotification = async (chatId: ObjectId, userId: ObjectId, noticeId: ObjectId) => {
   const isChat = await Chat.findOne({ _id: chatId, users: userId, isGroupChat: true });
 
@@ -551,15 +562,20 @@ const editChatTopNotification = async (chatId: ObjectId, userId: ObjectId, notic
   await notice.save();
 
   isChat.topNoti = notice;
-  const updateChat = await isChat.save();
+  const updatedChat = await isChat.save();
   
-  if (!updateChat) {
+  if (!updatedChat) {
     const error = new Error("공지사항 업데이트 실패") as IError;
     error.statusCode = 500;
     throw error;
   }  
   
-  return updateChat;
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
+  
+  return updatedChat;
 }
 
 // 채팅방 공지 수정
@@ -589,14 +605,20 @@ const editChatNotification = async (chatId: ObjectId, userId: ObjectId, noticeId
 
   await notice.save();
 
-  const updateChat = await isChat.save();
+  const updatedChat = await isChat.save();
   
-    if (!updateChat) {
-      const error = new Error("공지사항 업데이트 실패") as IError;
-      error.statusCode = 500;
-      throw error;
-    }  
-  return updateChat;
+  if (!updatedChat) {
+    const error = new Error("공지사항 업데이트 실패") as IError;
+    error.statusCode = 500;
+    throw error;
+  }  
+    
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
+
+  return updatedChat;
 }
 
 // 현재 공지 내리기.
@@ -629,6 +651,11 @@ const demoteChatNotification = async (chatId: ObjectId, userId: ObjectId) => {
 
   const updatedChat = await isChat.save();
   
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
+
   return updatedChat;
 }
 
@@ -662,19 +689,25 @@ const removeChatNotification = async (chatId: ObjectId, userId: ObjectId, notice
 
   await Noti.findByIdAndDelete(noticeId);
 
-  const deletedNoti = await Chat.findByIdAndUpdate(
+  const updatedChat = await Chat.findByIdAndUpdate(
     chatId,
     update,
     { new: true }
   )
   
-  if (!deletedNoti) {
+  if (!updatedChat) {
     const error = new Error("공지사항 삭제 실패") as IError;
     error.statusCode = 500;
     throw error;
   }  
   
-  return deletedNoti;
+  const io = getIO();
+  const roomId = chatId.toHexString();
+  
+  io.to(roomId).emit("update noti", updatedChat);
+  
+  
+  return updatedChat;
 }
 
 // 채팅 내 전체 공지 확인

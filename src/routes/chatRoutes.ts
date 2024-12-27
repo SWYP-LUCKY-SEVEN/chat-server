@@ -15,10 +15,11 @@ router.delete("/group/:studyId", protect, chatController.deleteChat);
 
 router.delete("/group/user/:userId", chatController.leaveFromChat);
 
-router.post("/group/:studyId/notice", protect, chatController.createChatNotification);
-router.put("/group/:studyId/notice", protect, chatController.editChatNotification);
-router.put("/group/:studyId/notice/cancel", protect, chatController.demoteChatNotification);
-router.delete("/group/:studyId/notice", protect, chatController.removeChatNotification);
-router.get("/group/:studyId/notice/all", protect, chatController.getAllNoticeInChat);
-router.get("/group/:studyId/notice", protect, chatController.getNoticeInChat);
+router.post("/:studyId/group/notice/:messageIdx", protect, chatController.enrollChatNotification);
+router.post("/:studyId/group/notice", protect, chatController.createChatNotification);
+router.put("/:studyId/group/notice", protect, chatController.editChatNotification);
+router.put("/:studyId/group/notice/cancel", protect, chatController.demoteChatNotification);
+router.delete("/:studyId/group/notice", protect, chatController.removeChatNotification);
+router.get("/:studyId/group/notice/all", protect, chatController.getAllNoticeInChat);
+router.get("/:studyId/group/notice", protect, chatController.getNoticeInChat);
 export default router;

@@ -11,9 +11,10 @@ console.log(allowedOrigins)
 
 
 
+let io: Server;
 
 export const initSocket = (server: http.Server): void => {
-  const io = new Server(server, {
+  io = new Server(server, {
     path: '/chat/socket.io/',
     cors:{
       origin: '*',
@@ -40,3 +41,10 @@ export const initSocket = (server: http.Server): void => {
     handleSetupEvents(socket as Socket);
   });
 }
+
+export const getIO = (): Server => {
+  if (!io) {
+    throw new Error('Socket.IO is not initialized!');
+  }
+  return io;
+};

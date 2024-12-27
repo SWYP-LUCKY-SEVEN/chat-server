@@ -224,15 +224,13 @@ const updateChatName = asyncHandler(async (req: Request, res: Response) => {
 // 채팅 공지로 등록
 const enrollChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { studyId } = req.params;
-    const { messageId } = req.body;
+    const { studyId, messageIdx } = req.params;
     const reqUserId = req.user?._id;
     
     const chatId = toObjectId(studyId);
-    const messageObjectId = toObjectId(messageId);
 
     if (reqUserId && chatId) {
-      const createNotiChat = await chatService.enrollChatNotification(chatId, reqUserId, messageObjectId);
+      const createNotiChat = await chatService.enrollChatNotification(chatId, reqUserId, Number(messageIdx));
       res.status(201).json(createNotiChat);
     }
   } catch (error: any) {
@@ -362,6 +360,7 @@ export default {
   recordUserOut,
   leaveFromChat,
   updateChatName,
+  enrollChatNotification,
   createChatNotification,
   editChatNotification,
   demoteChatNotification,
