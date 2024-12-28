@@ -258,6 +258,24 @@ const createChatNotification = asyncHandler(async (req: Request, res: Response) 
   }
 });
 
+// 채팅방 최상단 공지로 수정
+const editChatTopNotification = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { studyId } = req.params;
+    const { notiId } = req.body;
+    const reqUserId = req.user?._id;
+    
+    const chatId = toObjectId(studyId);
+    if (reqUserId && chatId) {
+      const editNotiChat = await chatService.editChatTopNotification(chatId, reqUserId, notiId);
+      res.status(200).json(editNotiChat);
+    }
+  } catch (error: any) {
+    errorLoggerMiddleware(error as IError, req, res);
+    res.status(error.statusCode).json(error.message);
+  }
+});
+
 // 기존 공지 수정 (noti id)
 const editChatNotification = asyncHandler(async (req: Request, res: Response) => {
   try {

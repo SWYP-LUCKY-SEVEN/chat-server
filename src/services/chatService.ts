@@ -478,7 +478,7 @@ const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messag
     throw error;
   }
 
-  const message = await Message.findOne({ chatId, index: messageIdx });
+  const message = await Message.findOne({ chat: chatId, index: messageIdx });
 
   if (!message) {
     const error = new Error("메시지를 찾을 수 없음") as IError;
@@ -488,8 +488,9 @@ const enrollChatNotification = async (chatId: ObjectId, userId: ObjectId, messag
   
   const newNoti = await Noti.create({
     isTop: true,
+    chat : chatId,
     contents: message.content || "",
-    messsageIdx: message.index
+    messageIdx: message.index
   });
 
   isChat.topNoti = newNoti;
@@ -516,8 +517,9 @@ const createChatNotification = async (chatId: ObjectId, userId: ObjectId, notiCo
 
   const newNoti = await Noti.create({
     isTop: true,
+    chat : chatId,
     contents: notiContent,
-    messsageIdx: null
+    messageIdx: null
   });
 
 
@@ -765,6 +767,7 @@ export default {
   updateChatName,
   enrollChatNotification,
   createChatNotification,
+  editChatTopNotification,
   editChatNotification,
   demoteChatNotification,
   removeChatNotification,

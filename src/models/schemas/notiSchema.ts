@@ -3,10 +3,14 @@ import INotiDocument from "../interfaces/INoti";
 
 const NotiSchema = new Schema<INotiDocument>(
     {
-      chatId: { type: Schema.Types.ObjectId, required: true },
+      chat: { 
+        type: Schema.Types.ObjectId,
+        index: true,
+        ref: "Chat" 
+      },
       isTop: { type: Boolean, default: false },
       contents: { type: String, required: true },
-      messsageIdx: { type: Number, required: false }
+      messageIdx: { type: Number, required: false }
     },
     { timestamps: true }
   );
