@@ -2,13 +2,17 @@ import jwt from 'jsonwebtoken';
 import User from "@src/models/userModel";
 import { toObjectId } from "@src/configs/utill";
 import IUserDTO from '@src/dtos/userDto';
-import { ObjectId } from 'mongoose';
 import { Socket } from 'socket.io';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 const decodeJWTMiddleware = (socket: Socket, next: (err?: any) => void) => {
     const authToken = socket.handshake?.auth.token;
+
+    console.log(JWT_SECRET);
         
     if (!authToken) {
         console.log("no token");
